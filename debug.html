@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>调试页面</title>
+</head>
+<body>
+    <h1>调试控制台</h1>
+    
+    <h2>测试按钮功能</h2>
+    <button onclick="alert('按钮工作正常')">测试 Alert</button>
+    <button onclick="console.log('控制台输出正常')">测试 Console</button>
+    
+    <h2>测试 API</h2>
+    <textarea id="testInput" rows="3" cols="50">测试任务</textarea><br>
+    <button onclick="testAPI()">测试 API 调用</button>
+    <div id="result"></div>
+    
+    <h2>检查加载的脚本</h2>
+    <button onclick="checkScripts()">检查脚本</button>
+    <div id="scripts"></div>
+
+    <script>
+    console.log('调试脚本已加载');
+    
+    function testAPI() {
+        console.log('开始 API 调用...');
+        const input = document.getElementById('testInput').value;
+        document.getElementById('result').innerHTML = '处理中...';
+        
+        fetch('http://localhost:8000/api/tasks/ai-process', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ input: input })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('响应:', data);
+            document.getElementById('result').innerHTML = 
+                '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        })
+        .catch(error => {
+            console.error('错误:', error);
+            document.getElementById('result').innerHTML = '错误: ' + error;
+        });
+    }
+    
+    function checkScripts() {
+        const scripts = Array.from(document.scripts).map(s => s.src || '内联脚本');
+        document.getElementById('scripts').innerHTML = 
+            '<pre>' + scripts.join('\n') + '</pre>';
+    }
+    
+    // 检查主页面的函数是否存在
+    window.onload = function() {
+        console.log('页面加载完成');
+        console.log('aiProcessTasks 函数存在:', typeof aiProcessTasks !== 'undefined');
+        console.log('clearInput 函数存在:', typeof clearInput !== 'undefined');
+    };
+    </script>
+</body>
+</html>

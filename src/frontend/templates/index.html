@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生活管理系统 - Palantir 架构</title>
+    <link id="theme-stylesheet" rel="stylesheet" href="/static/theme-default.css">
+</head>
+<body>
+    <!-- 主题切换器 -->
+    <div class="theme-switcher">
+        <label for="theme-select">主题:</label>
+        <select id="theme-select" onchange="changeTheme(this.value)">
+            <option value="default">默认 macOS</option>
+            <option value="modernist">极简主义</option>
+            <option value="dark">深色模式</option>
+        </select>
+    </div>
+    
+    <div class="container">
+        <!-- 顶部导航 -->
+        <nav class="navbar">
+            <div class="nav-brand">
+                <span class="logo">🎯</span>
+                <h1>生活管理系统</h1>
+            </div>
+            <div class="nav-stats">
+                <div class="stat-item">
+                    <span class="stat-label">今日完成</span>
+                    <span class="stat-value" id="todayCompleted">0/0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">生产力分数</span>
+                    <span class="stat-value" id="productivityScore">0%</span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- AI 智能任务输入 -->
+        <div class="ai-input-section">
+            <h2>AI 智能任务处理</h2>
+            <p class="input-hint">
+                💡 单行输入添加单个任务，多行或分号分隔批量添加任务
+            </p>
+            <textarea id="aiTaskInput" 
+                      placeholder="输入任务，AI 会自动分类、预测时间、安排时间槽...
+
+示例：
+回复 Tony 的邮件
+研究 OCR 错误检测方法
+整理出差票据给雪媚
+法语老师通信30分钟
+
+或用分号分隔：回复邮件；整理文档；开会讨论"
+                      rows="6"></textarea>
+            <div class="input-actions">
+                <button onclick="aiProcessTasks()" class="btn btn-primary">
+                    <span class="btn-icon">✨</span> AI 智能处理
+                </button>
+                <button onclick="clearInput()" class="btn btn-secondary">
+                    清空
+                </button>
+            </div>
+            <div id="aiProcessing" class="ai-processing hidden">
+                <div class="loading-spinner"></div>
+                <span>AI 正在处理...</span>
+            </div>
+            <div id="processResult" class="process-result hidden"></div>
+        </div>
+
+        <!-- 时间域仪表板 -->
+        <div class="domain-dashboard">
+            <h2>今日时间域分配</h2>
+            <div class="domains-grid">
+                <div class="domain-card academic" data-domain="academic">
+                    <h3>🎓 学术/论文</h3>
+                    <div class="progress-ring">
+                        <svg width="120" height="120">
+                            <circle cx="60" cy="60" r="54" fill="none" stroke="#e0e0e0" stroke-width="8"/>
+                            <circle cx="60" cy="60" r="54" fill="none" stroke="#4285F4" stroke-width="8"
+                                    stroke-dasharray="339.292" stroke-dashoffset="339.292"
+                                    class="progress-ring-circle" id="academicProgress"/>
+                        </svg>
+                        <div class="progress-text">
+                            <span class="hours">0/4</span>
+                            <span class="label">小时</span>
+                        </div>
+                    </div>
+                    <div class="domain-tasks" id="academicTasks"></div>
+                </div>
+
+                <div class="domain-card income" data-domain="income">
+                    <h3>💰 收入/挣钱</h3>
+                    <div class="progress-ring">
+                        <svg width="120" height="120">
+                            <circle cx="60" cy="60" r="54" fill="none" stroke="#e0e0e0" stroke-width="8"/>
+                            <circle cx="60" cy="60" r="54" fill="none" stroke="#34A853" stroke-width="8"
+                                    stroke-dasharray="339.292" stroke-dashoffset="339.292"
+                                    class="progress-ring-circle" id="incomeProgress"/>
+                        </svg>
+                        <div class="progress-text">
+                            <span class="hours">0/4</span>
+                            <span class="label">小时</span>
+                        </div>
+                    </div>
+                    <div class="domain-tasks" id="incomeTasks"></div>
+                </div>
+
+                <div class="domain-card growth" data-domain="growth">
+                    <h3>🌱 个人成长</h3>
+                    <div class="progress-ring">
+                        <svg width="120" height="120">
+                            <circle cx="60" cy="60" r="54" fill="none" stroke="#e0e0e0" stroke-width="8"/>
+                            <circle cx="60" cy="60" r="54" fill="none" stroke="#FBBC04" stroke-width="8"
+                                    stroke-dasharray="339.292" stroke-dashoffset="339.292"
+                                    class="progress-ring-circle" id="growthProgress"/>
+                        </svg>
+                        <div class="progress-text">
+                            <span class="hours">0/4</span>
+                            <span class="label">小时</span>
+                        </div>
+                    </div>
+                    <div class="domain-tasks" id="growthTasks"></div>
+                </div>
+
+                <div class="domain-card life" data-domain="life">
+                    <h3>🏠 生活琐事</h3>
+                    <div class="progress-ring">
+                        <svg width="120" height="120">
+                            <circle cx="60" cy="60" r="54" fill="none" stroke="#e0e0e0" stroke-width="8"/>
+                            <circle cx="60" cy="60" r="54" fill="none" stroke="#EA4335" stroke-width="8"
+                                    stroke-dasharray="339.292" stroke-dashoffset="339.292"
+                                    class="progress-ring-circle" id="lifeProgress"/>
+                        </svg>
+                        <div class="progress-text">
+                            <span class="hours">0/4</span>
+                            <span class="label">小时</span>
+                        </div>
+                    </div>
+                    <div class="domain-tasks" id="lifeTasks"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 任务列表 -->
+        <div class="tasks-section">
+            <div class="section-header">
+                <h2>今日任务</h2>
+                <div class="action-buttons">
+                    <button onclick="toggleSelectAll()" class="btn btn-select-all">
+                        <span class="btn-icon">☑️</span> 全选
+                    </button>
+                    <button onclick="deleteSelectedTasks()" class="btn btn-delete-selected" style="display:none;">
+                        <span class="btn-icon">🗑️</span> 删除选中
+                    </button>
+                    <button onclick="optimizeSchedule()" class="btn btn-optimize">
+                        <span class="btn-icon">🔄</span> 优化日程
+                    </button>
+                    <button onclick="updateOntology()" class="btn btn-learn">
+                        <span class="btn-icon">🧠</span> AI 学习
+                    </button>
+                </div>
+            </div>
+            <div id="tasksList" class="tasks-list"></div>
+        </div>
+
+        <!-- AI 洞察面板 -->
+        <div class="insights-panel">
+            <h3>AI 洞察与建议</h3>
+            <div id="aiInsights" class="insights-content">
+                <div class="insight-item">
+                    💡 系统正在学习您的工作模式...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 提示 -->
+    <div id="toast" class="toast"></div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
