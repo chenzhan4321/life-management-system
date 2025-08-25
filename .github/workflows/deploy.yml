@@ -38,19 +38,38 @@ jobs:
           echo "has_token=true" >> $GITHUB_OUTPUT
         fi
     
+    - name: Setup Node.js
+      if: steps.check-token.outputs.has_token == 'true'
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        
     - name: Install Railway CLI
       if: steps.check-token.outputs.has_token == 'true'
       run: |
         npm install -g @railway/cli
+        railway --version
         
-    - name: Deploy to Railway
+    - name: Login to Railway
       if: steps.check-token.outputs.has_token == 'true'
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       run: |
-        echo "Using Railway CLI for deployment..."
+        echo "Logging into Railway..."
         railway login --token $RAILWAY_TOKEN
-        railway deploy --service life-management || railway deploy
+        railway whoami
+        
+    - name: Initialize Railway project
+      if: steps.check-token.outputs.has_token == 'true'
+      run: |
+        echo "Initializing Railway project..."
+        railway init --name life-management-system || echo "Project may already exist"
+        
+    - name: Deploy to Railway
+      if: steps.check-token.outputs.has_token == 'true'
+      run: |
+        echo "Deploying to Railway..."
+        railway up --detach
         
     - name: Railway deployment skipped
       if: steps.check-token.outputs.has_token == 'false'
