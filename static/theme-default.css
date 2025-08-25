@@ -323,6 +323,106 @@ textarea {
     margin-bottom: 10px;
 }
 
+/* 快速添加任务栏 */
+.manual-input-section {
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+}
+
+.manual-input-section:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.15);
+}
+
+.manual-input-section h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.125rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.manual-input-flex {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.quick-task-input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    font-size: 1rem;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    transition: all 0.2s ease;
+    min-width: 200px;
+}
+
+.quick-task-input::placeholder {
+    color: var(--text-tertiary);
+}
+
+.quick-task-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.quick-task-select {
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    font-size: 1rem;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 120px;
+}
+
+.quick-task-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.quick-task-select option {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.quick-task-number {
+    width: 80px;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    font-size: 1rem;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.quick-task-number:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.quick-add-btn {
+    padding: 0.75rem 1.5rem;
+    white-space: nowrap;
+    min-width: auto;
+}
+
 /* 按钮系统 */
 .btn {
     padding: 0.75rem 1.5rem;
