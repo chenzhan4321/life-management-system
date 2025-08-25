@@ -1,10 +1,34 @@
 // 生活管理系统前端应用
-const API_BASE = '/api';
+// 动态检测API基础URL
+const API_BASE = (() => {
+    const hostname = window.location.hostname;
+    
+    // Railway部署检测
+    if (hostname.includes('railway.app') || hostname.includes('up.railway.app')) {
+        return '/api'; // Railway上的相对路径
+    }
+    
+    // GitHub Pages检测
+    if (hostname.includes('github.io')) {
+        return null; // GitHub Pages使用静态数据，无API
+    }
+    
+    // 本地开发
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        return '/api';
+    }
+    
+    // 默认
+    return '/api';
+})();
+
+let STATIC_MODE = !API_BASE; // 如果没有API则为静态模式
 
 // 重构：使用单一全局计时器管理所有任务，避免重复
 let globalTimerInterval = null;
 const taskTimerData = new Map(); // 任务ID -> {status: 'active'|'paused', elapsedSeconds, startTime}
 const taskReminders = new Map(); // 存储任务提醒的 timeout ID
+const overdueRemindedTasks = new Set(); // 已提醒过期的任务ID集合，避免重复提醒
 const everStartedTasks = new Set(); // 跟踪曾经启动过的任务ID
 
 // 兼容旧代码的别名
@@ -502,8 +526,17 @@ function setupTaskReminders() {
     taskReminders.forEach(timeoutId => clearTimeout(timeoutId));
     taskReminders.clear();
     
-    // 为所有有计划时间的待完成任务设置提醒
+    // 清理已完成或已删除任务的过期提醒记录
     const tasks = window.currentTasks || [];
+    const currentTaskIds = new Set(tasks.map(t => t.id));
+    for (const taskId of overdueRemindedTasks) {
+        const task = tasks.find(t => t.id === taskId);
+        if (!task || task.status === 'completed') {
+            overdueRemindedTasks.delete(taskId);
+        }
+    }
+    
+    // 为所有有计划时间的待完成任务设置提醒
     const now = new Date();
     
     tasks.forEach(task => {
@@ -568,8 +601,11 @@ function setupTaskReminders() {
                 
                 taskReminders.set(task.id, timeoutId);
             } else if (timeUntilTask > -3600000 && timeUntilTask < -300000) { // 过去5分钟到1小时内的任务
-                // 只对已经过期超过5分钟的任务提醒（避免刚设置的时间就提醒）
-                showToast(`⚠️ 任务 "${task.title}" 已过计划时间！`, 'warning');
+                // 只对已经过期超过5分钟的任务提醒，且每个任务只提醒一次
+                if (!overdueRemindedTasks.has(task.id)) {
+                    showToast(`⚠️ 任务 "${task.title}" 已过计划时间！`, 'warning');
+                    overdueRemindedTasks.add(task.id); // 标记为已提醒
+                }
                 
                 // 添加过期样式
                 const taskElement = document.querySelector(`[data-task-id="${task.id}"]`);
@@ -880,8 +916,35 @@ function showProcessResult(data) {
 // 加载任务列表
 async function loadTasks() {
     try {
-        const response = await fetch(`${API_BASE}/tasks`);
-        const data = await response.json();
+        let response, data;
+        
+        // 如果已经是静态模式（GitHub Pages），直接加载静态数据
+        if (STATIC_MODE) {
+            console.log('静态模式：加载静态数据...');
+            const basePath = window.location.hostname === 'localhost' ? '.' : '/life-management-system/static';
+            response = await fetch(`${basePath}/tasks-data.json`);
+            data = await response.json();
+        } else {
+            // 尝试API调用
+            try {
+                console.log(`正在连接API: ${API_BASE}/tasks`);
+                response = await fetch(`${API_BASE}/tasks`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                data = await response.json();
+                console.log('API连接成功，已加载任务数据');
+            } catch (apiError) {
+                console.error('API连接失败:', apiError.message);
+                console.log('切换到静态模式');
+                STATIC_MODE = true;
+                const basePath = window.location.hostname === 'localhost' ? '.' : '/life-management-system/static';
+                response = await fetch(`${basePath}/tasks-data.json`);
+                data = await response.json();
+            }
+        }
         
         // 保存任务数据到全局变量，供提醒功能使用
         window.currentTasks = data.tasks;
@@ -1744,12 +1807,14 @@ async function updateTaskTitle(taskId, newTitle) {
         if (response.ok) {
             showToast('任务标题已更新', 'success');
         } else {
-            showToast('更新失败', 'error');
+            const errorText = await response.text();
+            console.error(`标题更新失败 [${response.status}]:`, errorText);
+            showToast(`标题更新失败: ${response.status}`, 'error');
             await loadTasks();
         }
     } catch (error) {
         console.error('更新任务标题失败:', error);
-        showToast('更新失败', 'error');
+        showToast(`标题更新错误: ${error.message}`, 'error');
         await loadTasks();
     }
 }
@@ -2359,14 +2424,24 @@ async function toggleTaskStatus(taskId, isCompleted) {
             }
         }
         
+        const updateData = {
+            status: isCompleted ? 'completed' : 'pending'
+        };
+        
+        // 如果任务被标记为完成，设置完成时间
+        if (isCompleted) {
+            updateData.completed_at = new Date().toISOString();
+        } else {
+            // 如果任务被标记为未完成，清除完成时间
+            updateData.completed_at = null;
+        }
+        
         const response = await fetch(`${API_BASE}/tasks/${taskId}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                status: isCompleted ? 'completed' : 'pending'
-            })
+            body: JSON.stringify(updateData)
         });
         
         if (response.ok) {
@@ -2377,6 +2452,9 @@ async function toggleTaskStatus(taskId, isCompleted) {
                 taskTimerData.delete(taskId);
                 clearTaskReminder(taskId);
             }
+            
+            // 清除过期提醒记录（无论完成还是恢复）
+            overdueRemindedTasks.delete(taskId);
             
             await loadTasks();
             await updateDashboard();
@@ -2518,8 +2596,8 @@ function getStatusName(status) {
 // 主题切换功能
 function changeTheme(themeName) {
     const themeLink = document.getElementById('theme-stylesheet');
-    // 修复路径问题
-    const basePath = window.location.pathname.includes('.html') ? '.' : '/static';
+    // 修复路径问题 - 适配 GitHub Pages
+    const basePath = window.location.hostname === 'localhost' ? '.' : '/life-management-system/static';
     themeLink.href = `${basePath}/theme-${themeName}.css`;
     
     // 保存到 localStorage
@@ -2544,7 +2622,7 @@ function loadSavedTheme() {
     const validTheme = savedTheme === 'modernist' ? 'default' : savedTheme;
     
     const themeLink = document.getElementById('theme-stylesheet');
-    const basePath = window.location.pathname.includes('.html') ? '.' : '/static';
+    const basePath = window.location.hostname === 'localhost' ? '.' : '/life-management-system/static';
     themeLink.href = `${basePath}/theme-${validTheme}.css`;
     
     const themeSelect = document.getElementById('theme-select');
@@ -2561,6 +2639,24 @@ function loadSavedTheme() {
 
 document.addEventListener('DOMContentLoaded', () => {
     loadSavedTheme();
+    
+    // 显示运行模式
+    console.log('🌐 当前运行环境:', {
+        hostname: window.location.hostname,
+        API_BASE,
+        STATIC_MODE
+    });
+    
+    // 如果是Railway模式，显示实时功能提示
+    if (!STATIC_MODE && window.location.hostname.includes('railway.app')) {
+        setTimeout(() => {
+            showToast('🚀 完整功能版本 - 支持AI处理和数据编辑', 'success');
+        }, 2000);
+    } else if (STATIC_MODE) {
+        setTimeout(() => {
+            showToast('📖 展示版本 - 显示历史数据（只读）', 'info');
+        }, 2000);
+    }
     
     // 加载暂停的计时器
     loadPausedTimersFromLocalStorage();
