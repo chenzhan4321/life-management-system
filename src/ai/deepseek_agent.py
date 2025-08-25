@@ -1,5 +1,6 @@
 """
 DeepSeek AI 集成 - 智能任务管理
+升级版：集成语义理解能力
 """
 import os
 import json
@@ -8,6 +9,14 @@ from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
 import httpx
 from pydantic import BaseModel
+
+# 导入语义编码器
+try:
+    from .semantic_encoder import TaskSemanticEncoder
+    SEMANTIC_AVAILABLE = True
+except ImportError as e:
+    print(f"语义编码器导入失败: {e}")
+    SEMANTIC_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +30,16 @@ class DeepSeekAgent:
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
+        
+        # 初始化语义编码器
+        self.semantic_encoder = None
+        if SEMANTIC_AVAILABLE:
+            try:
+                self.semantic_encoder = TaskSemanticEncoder()
+                logger.info("语义编码器初始化成功")
+            except Exception as e:
+                logger.warning(f"语义编码器初始化失败: {e}")
+                self.semantic_encoder = None
         
         # 系统提示词 - 定义 AI 的角色和能力
         self.system_prompt = """你是一个智能生活管理助手，专门帮助用户管理日常任务和时间。
@@ -39,20 +58,64 @@ class DeepSeekAgent:
 
 请用JSON格式回复。"""
 
-    async def classify_task(self, task_description: str) -> Dict:
+    async def classify_task(self, task_description: str, user_history: List[Dict] = None) -> Dict:
         """
-        自动分类任务到相应时间域
+        自动分类任务到相应时间域 - 升级版：优先使用语义理解
+        
+        Args:
+            task_description: 任务描述
+            user_history: 用户历史任务数据（可选）
         
         Returns:
             {
                 "domain": "academic/income/growth/life",
                 "confidence": 0.85,
-                "reasoning": "分类理由"
+                "reasoning": "分类理由",
+                "method": "semantic/llm/keyword"
             }
         """
+        # 1. 优先尝试语义分类
+        if self.semantic_encoder:
+            try:
+                result = self.semantic_encoder.classify_task_semantic(task_description, user_history)
+                result['method'] = 'semantic'
+                logger.info(f"使用语义分类: {task_description} -> {result['domain']} (置信度: {result['confidence']:.2f})")
+                
+                # 如果置信度高于阈值，直接返回
+                if result['confidence'] > 0.7:
+                    return result
+                    
+                # 如果置信度较低，记录并继续LLM分类作为验证
+                logger.info(f"语义分类置信度较低 ({result['confidence']:.2f})，使用LLM验证")
+                semantic_result = result
+                
+            except Exception as e:
+                logger.warning(f"语义分类失败: {e}，回退到LLM分类")
+                semantic_result = None
+        else:
+            semantic_result = None
+        
+        # 2. 使用LLM分类（作为主方法或验证）
+        llm_result = await self._llm_classify_task(task_description)
+        
+        # 3. 如果两种方法都可用，进行结果融合
+        if semantic_result and llm_result:
+            return self._merge_classification_results(semantic_result, llm_result, task_description)
+        
+        # 4. 返回可用的结果
+        return llm_result if llm_result['confidence'] > 0.3 else self._fallback_classify(task_description)
+
+    async def _llm_classify_task(self, task_description: str) -> Dict:
+        """使用LLM进行任务分类"""
         prompt = f"""请分析以下任务，并将其分类到合适的时间域：
 
 任务描述：{task_description}
+
+时间域说明：
+- academic（学术）：学习、研究、论文、考试、课程相关
+- income（收入）：工作、项目、会议、客户、挣钱相关  
+- growth（成长）：健身、技能学习、个人发展、兴趣爱好
+- life（生活）：家务、购物、娱乐、社交、日常琐事
 
 请返回JSON格式：
 {{
@@ -63,14 +126,80 @@ class DeepSeekAgent:
 
         try:
             response = await self._call_api(prompt)
-            return json.loads(response)
+            result = json.loads(response)
+            result['method'] = 'llm'
+            return result
         except Exception as e:
-            logger.error(f"任务分类失败: {e}")
+            logger.error(f"LLM任务分类失败: {e}")
+            return self._fallback_classify(task_description)
+    
+    def _merge_classification_results(self, semantic_result: Dict, llm_result: Dict, task_text: str) -> Dict:
+        """融合语义分类和LLM分类的结果"""
+        # 如果两个结果一致，提高置信度
+        if semantic_result['domain'] == llm_result['domain']:
+            combined_confidence = min(0.95, (semantic_result['confidence'] + llm_result['confidence']) / 2 * 1.2)
             return {
-                "domain": "life",
-                "confidence": 0.5,
-                "reasoning": "默认分类"
+                'domain': semantic_result['domain'],
+                'confidence': combined_confidence,
+                'reasoning': f"语义分析和LLM一致判断: {semantic_result['reasoning']}",
+                'method': 'semantic+llm',
+                'agreement': True
             }
+        
+        # 如果结果不一致，选择置信度更高的
+        if semantic_result['confidence'] > llm_result['confidence']:
+            chosen_result = semantic_result
+            chosen_result['reasoning'] += f" (LLM建议: {llm_result['domain']})"
+        else:
+            chosen_result = llm_result
+            chosen_result['reasoning'] += f" (语义分析建议: {semantic_result['domain']})"
+        
+        chosen_result['method'] = 'semantic+llm'
+        chosen_result['agreement'] = False
+        chosen_result['confidence'] = chosen_result['confidence'] * 0.9  # 不一致时降低置信度
+        
+        return chosen_result
+    
+    def _fallback_classify(self, task_description: str) -> Dict:
+        """回退分类方法"""
+        # 简单的关键词匹配
+        academic_keywords = ["学", "研究", "论文", "考试", "课程", "学习", "阅读", "study"]
+        income_keywords = ["工作", "会议", "项目", "客户", "报告", "挣钱", "work", "meeting"] 
+        growth_keywords = ["健身", "锻炼", "学习", "技能", "成长", "提升", "exercise"]
+        life_keywords = ["购物", "做饭", "打扫", "娱乐", "家务", "社交", "生活"]
+        
+        keyword_groups = [
+            ("academic", academic_keywords),
+            ("income", income_keywords), 
+            ("growth", growth_keywords),
+            ("life", life_keywords)
+        ]
+        
+        scores = {}
+        matched_keywords = {}
+        
+        for domain, keywords in keyword_groups:
+            count = sum(1 for kw in keywords if kw.lower() in task_description.lower())
+            scores[domain] = count
+            matched_keywords[domain] = [kw for kw in keywords if kw.lower() in task_description.lower()]
+        
+        best_domain = max(scores, key=scores.get)
+        max_score = scores[best_domain]
+        
+        if max_score == 0:
+            best_domain = "life"
+            confidence = 0.3
+            reasoning = "无明显关键词，默认分类为生活域"
+        else:
+            confidence = min(0.8, max_score * 0.2 + 0.4)
+            reasoning = f"匹配关键词: {', '.join(matched_keywords[best_domain])}"
+        
+        return {
+            "domain": best_domain,
+            "confidence": confidence,
+            "reasoning": reasoning,
+            "method": "keyword"
+        }
 
     async def estimate_duration(self, task_description: str, historical_data: List[Dict] = None) -> Dict:
         """

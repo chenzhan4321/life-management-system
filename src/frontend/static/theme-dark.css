@@ -572,12 +572,82 @@ textarea {
 
 /* 已完成任务样式 */
 .task-item.completed {
-    opacity: 0.5;
+    opacity: 0.35;
 }
 
 .task-item.completed .task-title {
     text-decoration: line-through;
     color: var(--text-secondary);
+}
+
+/* 任务状态样式设计 */
+
+/* 进行中任务样式 - 保持原色彩，可以有动画 */
+.task-item.in-progress {
+    opacity: 1.0;
+    /* 进行中任务保持正常颜色，允许闪烁动画 */
+}
+
+/* 暂停任务样式 - 浅色显示，不闪烁，虚化（暂停一定意味着曾经启动过） */
+.task-item.paused {
+    opacity: 0.5;
+    background: var(--bg-secondary);
+    border-left-width: 2px;
+}
+
+.task-item.paused .task-title {
+    color: var(--text-secondary);
+}
+
+.task-item.paused .task-meta {
+    color: var(--text-secondary);
+}
+
+/* 阻止暂停任务的所有动画效果 */
+.task-item.paused *,
+.task-item.paused svg *,
+.task-item.paused svg path,
+.task-item.paused svg circle {
+    animation: none !important;
+    transition: none !important;
+}
+
+/* 对暂停任务，强制移除所有动画类的效果 */
+.task-item.paused svg .in-progress-ring,
+.task-item.paused svg path.in-progress-ring,
+.task-item.paused svg circle.in-progress-ring {
+    animation: none !important;
+    opacity: 0.5 !important;
+    stroke-width: 4px !important;
+    filter: none !important;
+}
+
+/* 暂停状态的SVG圆环样式 - 静态显示 */
+svg path.paused-ring,
+svg circle.paused-ring {
+    animation: none !important;
+    opacity: 0.5 !important;
+    stroke-width: 4px !important;
+    filter: none !important;
+}
+
+/* 未开始任务样式 - 不虚化，保持清晰 */
+.task-item.pending {
+    opacity: 1.0;
+    background: var(--bg-secondary);
+}
+
+.task-item.pending .task-title {
+    color: var(--text-primary); /* 与默认标题颜色一致，不虚化 */
+}
+
+.task-item.pending .task-meta {
+    color: var(--text-secondary);
+}
+
+/* 阻止未开始任务的闪烁动画 */
+.task-item.pending * {
+    animation: none !important;
 }
 
 /* 任务分组 */

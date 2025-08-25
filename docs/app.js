@@ -1,11 +1,11 @@
 // 生活管理系统前端应用
-// 使用配置的API地址
-const API_BASE = window.API_CONFIG ? window.API_CONFIG.baseURL + '/api' : '/api';
+const API_BASE = '/api';
 
 // 重构：使用单一全局计时器管理所有任务，避免重复
 let globalTimerInterval = null;
 const taskTimerData = new Map(); // 任务ID -> {status: 'active'|'paused', elapsedSeconds, startTime}
 const taskReminders = new Map(); // 存储任务提醒的 timeout ID
+const everStartedTasks = new Set(); // 跟踪曾经启动过的任务ID
 
 // 兼容旧代码的别名
 const activeTimers = taskTimerData;
@@ -65,15 +65,22 @@ function ensureGlobalTimer() {
     if (!globalTimerInterval) {
         console.log('启动全局计时器');
         globalTimerInterval = setInterval(() => {
+            let hasActiveTimer = false;
             taskTimerData.forEach((data, taskId) => {
                 if (data.status === 'active') {
                     data.elapsedSeconds++;
                     updateTimerDisplay(taskId, data.elapsedSeconds);
+                    hasActiveTimer = true;
                 } else if (data.status === 'paused') {
                     // 暂停状态不增加时间，但保持显示
                     updateTimerDisplay(taskId, data.elapsedSeconds);
                 }
             });
+            
+            // 每10秒保存一次状态（仅在有活动计时器时）
+            if (hasActiveTimer && Math.floor(Date.now() / 1000) % 10 === 0) {
+                saveTimersToLocalStorage();
+            }
         }, 1000);
     }
 }
@@ -91,6 +98,8 @@ function startTaskTimer(taskId, taskTitle) {
         // 如果是暂停状态，恢复计时
         if (existingData.status === 'paused') {
             existingData.status = 'active';
+            // 记录该任务曾经被启动过（虽然已经应该在集合中了）
+            everStartedTasks.add(taskId);
             ensureGlobalTimer();
             showToast(`继续任务: ${taskTitle}`, 'success');
             saveTimersToLocalStorage();
@@ -109,6 +118,9 @@ function startTaskTimer(taskId, taskTitle) {
     
     taskTimerData.set(taskId, timerData);
     
+    // 记录该任务曾经被启动过
+    everStartedTasks.add(taskId);
+    
     // 确保全局计时器在运行
     ensureGlobalTimer();
     
@@ -117,6 +129,13 @@ function startTaskTimer(taskId, taskTitle) {
     
     // 保存状态
     saveTimersToLocalStorage();
+    
+    // 立即更新UI为进行中状态
+    const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+    if (taskElement) {
+        taskElement.classList.remove('pending', 'paused');
+        taskElement.classList.add('in-progress');
+    }
     
     // 异步更新后端状态，然后刷新任务列表
     fetch(`${API_BASE}/tasks/${taskId}`, {
@@ -157,7 +176,7 @@ function pauseTaskTimer(taskId) {
         globalTimerInterval = null;
     }
     
-    // 更新主按钮为"继续"
+    // 更新主按钮为"继续"，并添加暂停样式类
     const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
     if (taskElement) {
         const mainBtn = taskElement.querySelector('.btn-timer');
@@ -166,6 +185,28 @@ function pauseTaskTimer(taskId) {
             mainBtn.style.background = '#4CAF50';
             mainBtn.setAttribute('onclick', `resumeTaskTimer('${taskId}')`);
         }
+        
+        // 添加暂停样式类，移除进行中样式和所有闪烁效果
+        taskElement.classList.remove('in-progress', 'pending', 'task-flash-warning', 'task-should-start');
+        
+        // 暂停状态一定意味着任务曾经被启动过（因为只有active状态的任务才能被暂停）
+        taskElement.classList.add('paused');
+        taskElement.classList.remove('paused-never-started'); // 清理遗留的错误类名
+        
+        // 确保该任务被标记为曾经启动过
+        everStartedTasks.add(taskId);
+        
+        // 也要移除SVG进度圆环的闪烁类
+        const svgElements = taskElement.querySelectorAll('svg path, svg circle');
+        svgElements.forEach(elem => {
+            elem.classList.remove('in-progress-ring');
+            elem.classList.add('paused-ring');
+        });
+    }
+    
+    // 立即更新域进度显示，无需等待刷新
+    if (window.currentTasks) {
+        updateDomainDisplay(window.currentTasks);
     }
     
     showToast(`任务已暂停`, 'info');
@@ -185,7 +226,7 @@ function resumeTaskTimer(taskId) {
     // 保存状态
     saveTimersToLocalStorage();
     
-    // 更新主按钮为"暂停"
+    // 更新主按钮为"暂停"，并移除暂停样式类
     const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
     if (taskElement) {
         const mainBtn = taskElement.querySelector('.btn-timer');
@@ -194,6 +235,22 @@ function resumeTaskTimer(taskId) {
             mainBtn.style.background = '#FFA500';
             mainBtn.setAttribute('onclick', `pauseTaskTimer('${taskId}')`);
         }
+        
+        // 移除暂停样式类，添加进行中样式
+        taskElement.classList.remove('paused', 'pending', 'paused-never-started'); // 清理暂停相关类
+        taskElement.classList.add('in-progress');
+        
+        // 恢复SVG进度圆环的闪烁类
+        const svgElements = taskElement.querySelectorAll('svg path, svg circle');
+        svgElements.forEach(elem => {
+            elem.classList.remove('paused-ring');
+            elem.classList.add('in-progress-ring');
+        });
+    }
+    
+    // 立即更新域进度显示，无需等待刷新
+    if (window.currentTasks) {
+        updateDomainDisplay(window.currentTasks);
     }
     
     showToast(`继续任务`, 'success');
@@ -221,23 +278,127 @@ function loadPausedTimersFromLocalStorage() {
         try {
             const timersData = JSON.parse(saved);
             Object.entries(timersData).forEach(([taskId, data]) => {
+                // 对于活动任务，计算从上次保存到现在的时间差
+                let currentElapsedSeconds = data.elapsedSeconds || 0;
+                if (data.status === 'active' && data.savedAt) {
+                    const lastSaveTime = new Date(data.savedAt);
+                    const now = new Date();
+                    const additionalSeconds = Math.floor((now - lastSaveTime) / 1000);
+                    currentElapsedSeconds = (data.elapsedSeconds || 0) + additionalSeconds;
+                    console.log(`任务 ${taskId} 恢复活动状态，原时间: ${data.elapsedSeconds}，额外时间: ${additionalSeconds}，总时间: ${currentElapsedSeconds}`);
+                }
+                
                 // 恢复计时器数据到内存
                 taskTimerData.set(taskId, {
                     status: data.status,
-                    startTime: new Date(data.startTime),
+                    startTime: new Date(), // 重新设置为当前时间
                     actualStart: data.actualStart,
-                    elapsedSeconds: data.elapsedSeconds || 0
+                    elapsedSeconds: currentElapsedSeconds
                 });
                 
                 // 如果有活动的计时器，启动全局计时器
                 if (data.status === 'active') {
                     ensureGlobalTimer();
+                    console.log(`恢复活动任务 ${taskId}，经过时间: ${currentElapsedSeconds}秒`);
+                    // 立即显示当前时间（如果元素存在）
+                    const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+                    if (taskElement) {
+                        updateTimerDisplay(taskId, currentElapsedSeconds);
+                        console.log(`立即更新任务 ${taskId} 的计时显示: ${currentElapsedSeconds}秒`);
+                    }
+                }
+                
+                if (data.status === 'paused') {
+                    console.log(`恢复暂停任务 ${taskId}，经过时间: ${currentElapsedSeconds}秒`);
                 }
             });
         } catch (error) {
             console.error('加载计时器失败:', error);
         }
     }
+    
+    // 恢复曾经启动过的任务集合
+    const savedStartedTasks = localStorage.getItem('everStartedTasks');
+    if (savedStartedTasks) {
+        try {
+            const startedTasksArray = JSON.parse(savedStartedTasks);
+            everStartedTasks.clear();
+            startedTasksArray.forEach(taskId => everStartedTasks.add(taskId));
+        } catch (error) {
+            console.error('加载启动过任务集合失败:', error);
+        }
+    }
+}
+
+// 恢复活动计时器的UI状态（在任务加载完成后调用）
+function restoreActiveTimers() {
+    console.log('恢复活动计时器UI状态', taskTimerData.size, '个计时器');
+    taskTimerData.forEach((data, taskId) => {
+        const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+        if (!taskElement) {
+            console.log(`未找到任务元素: ${taskId}`);
+            return;
+        }
+        
+        if (data.status === 'active') {
+            // 恢复活动状态
+            taskElement.classList.remove('pending', 'paused', 'paused-never-started'); // 清理暂停相关类
+            taskElement.classList.add('in-progress');
+            
+            // 更新计时显示
+            updateTimerDisplay(taskId, data.elapsedSeconds);
+            
+            // 更新按钮状态
+            const mainBtn = taskElement.querySelector('.btn-timer');
+            if (mainBtn) {
+                mainBtn.innerHTML = '⏸️ 暂停';
+                mainBtn.style.background = '#FFA500';
+                mainBtn.setAttribute('onclick', `pauseTaskTimer('${taskId}')`);
+            }
+            
+            // 恢复SVG进度圆环的闪烁类
+            const svgElements = taskElement.querySelectorAll('svg path, svg circle');
+            svgElements.forEach(elem => {
+                elem.classList.remove('paused-ring');
+                elem.classList.add('in-progress-ring');
+            });
+            
+            console.log(`恢复活动任务 ${taskId}, 经过时间: ${data.elapsedSeconds}秒`);
+            
+        } else if (data.status === 'paused') {
+            // 恢复暂停状态
+            taskElement.classList.remove('in-progress', 'pending');
+            
+            // 暂停状态一定意味着任务曾经被启动过（从 localStorage 恢复的 paused 状态）
+            taskElement.classList.add('paused');
+            taskElement.classList.remove('paused-never-started'); // 清理遗留的错误类名
+            
+            // 确保该任务被标记为曾经启动过
+            everStartedTasks.add(taskId);
+            
+            // 使用 setTimeout 确保DOM完全渲染后再更新计时显示
+            setTimeout(() => {
+                updateTimerDisplay(taskId, data.elapsedSeconds);
+            }, 100);
+            
+            // 更新按钮状态
+            const mainBtn = taskElement.querySelector('.btn-timer');
+            if (mainBtn) {
+                mainBtn.innerHTML = '▶️ 继续';
+                mainBtn.style.background = '#4CAF50';
+                mainBtn.setAttribute('onclick', `resumeTaskTimer('${taskId}')`);
+            }
+            
+            // 恢复SVG进度圆环的静态状态
+            const svgElements = taskElement.querySelectorAll('svg path, svg circle');
+            svgElements.forEach(elem => {
+                elem.classList.remove('in-progress-ring');
+                elem.classList.add('paused-ring');
+            });
+            
+            console.log(`恢复暂停任务 ${taskId}, 经过时间: ${data.elapsedSeconds}秒`);
+        }
+    });
 }
 
 // 停止任务计时器（完成任务）
@@ -301,10 +462,9 @@ function updateTimerDisplay(taskId, seconds, isPaused = false) {
         actionsDiv.insertBefore(timerDisplay, actionsDiv.firstChild);
     }
     
-    // 只显示计时和完成按钮，暂停/继续由主按钮处理
+    // 只显示计时时间，完成通过勾选框操作，暂停/继续由主按钮处理
     timerDisplay.innerHTML = `
         <span class="timer-time">⏱️ ${formatTime(seconds)}</span>
-        <button onclick="stopTaskTimer('${taskId}')" class="btn-stop-timer">✅ 完成</button>
     `;
     
     // 更新主按钮的状态
@@ -355,19 +515,29 @@ function setupTaskReminders() {
             const thirtyMinutesBefore = timeUntilTask - 30 * 60 * 1000;
             if (thirtyMinutesBefore > 0) {
                 const flashTimeoutId = setTimeout(() => {
-                    // 添加闪烁效果
-                    const taskElement = document.querySelector(`[data-task-id="${task.id}"]`);
-                    if (taskElement) {
-                        taskElement.classList.add('task-flash-warning');
+                    // 检查任务是否被暂停，只有非暂停状态才添加闪烁效果
+                    const timerData = taskTimerData.get(task.id);
+                    const isPaused = timerData && timerData.status === 'paused';
+                    
+                    if (!isPaused) {
+                        const taskElement = document.querySelector(`[data-task-id="${task.id}"]`);
+                        if (taskElement && !taskElement.classList.contains('paused')) {
+                            taskElement.classList.add('task-flash-warning');
+                        }
+                        showToast(`⏰ 任务 "${task.title}" 将在30分钟后开始`, 'info');
                     }
-                    showToast(`⏰ 任务 "${task.title}" 将在30分钟后开始`, 'info');
                 }, thirtyMinutesBefore);
                 taskReminders.set(`${task.id}-flash`, flashTimeoutId);
             } else if (timeUntilTask > 0 && timeUntilTask <= 30 * 60 * 1000) {
-                // 如果已经在30分钟内，立即添加闪烁
-                const taskElement = document.querySelector(`[data-task-id="${task.id}"]`);
-                if (taskElement) {
-                    taskElement.classList.add('task-flash-warning');
+                // 如果已经在30分钟内，检查是否暂停后决定是否立即添加闪烁
+                const timerData = taskTimerData.get(task.id);
+                const isPaused = timerData && timerData.status === 'paused';
+                
+                if (!isPaused) {
+                    const taskElement = document.querySelector(`[data-task-id="${task.id}"]`);
+                    if (taskElement && !taskElement.classList.contains('paused')) {
+                        taskElement.classList.add('task-flash-warning');
+                    }
                 }
             }
             
@@ -458,16 +628,21 @@ function restoreActiveTimers() {
 
 // 保存计时器状态到localStorage
 function saveTimersToLocalStorage() {
+    const now = new Date();
     const timersData = {};
     taskTimerData.forEach((data, taskId) => {
         timersData[taskId] = {
             status: data.status,
             elapsedSeconds: data.elapsedSeconds,
             startTime: data.startTime instanceof Date ? data.startTime.toISOString() : data.startTime,
-            actualStart: data.actualStart
+            actualStart: data.actualStart,
+            savedAt: now.toISOString() // 添加保存时间戳
         };
     });
     localStorage.setItem('taskTimers', JSON.stringify(timersData));
+    
+    // 也保存曾经启动过的任务集合
+    localStorage.setItem('everStartedTasks', JSON.stringify(Array.from(everStartedTasks)));
 }
 
 // 显示 Toast 提示
@@ -525,10 +700,9 @@ async function addQuickTask() {
             domain: domain,
             estimated_minutes: estimatedMinutes,
             priority: 3, // 默认中等优先级
-            status: 'pending',
-            scheduled_start: scheduledTime ? scheduledTime.toISOString() : null,
-            scheduled_end: scheduledTime ? 
-                new Date(scheduledTime.getTime() + estimatedMinutes * 60000).toISOString() : null
+            status: 'pool', // 直接添加的任务都放到任务池
+            scheduled_start: null, // 任务池中的任务暂时不安排时间
+            scheduled_end: null
         };
         
         // 使用本地时间而非UTC
@@ -801,14 +975,22 @@ async function loadTasks() {
         
         // 任务池
         html += '<div class="tasks-pool task-drop-zone" data-status="pool">';
-        html += '<h3>📋 任务池 <span style="font-size: 12px; color: #666;">（AI处理的任务，拖到待完成区域执行）</span>';
+        html += '<div class="section-header">';
+        html += '<h3>📋 任务池 <span style="font-size: 12px; color: #666;">（AI处理的任务，拖到待完成区域执行）</span></h3>';
         if (poolTasks.length > 0) {
-            html += `
-                <button onclick="selectAllPoolTasks()" class="btn-small" style="margin-left: 10px;">全选</button>
-                <button onclick="moveSelectedToToday()" class="btn-small btn-primary" style="margin-left: 5px;">移到今日任务</button>
-            `;
+            html += `<div class="action-buttons">
+                <button onclick="selectAllPoolTasks()" class="btn btn-select-all">
+                    <span class="btn-icon">☑️</span> 全选
+                </button>
+                <button onclick="moveSelectedToToday()" class="btn btn-primary">
+                    <span class="btn-icon">📅</span> 移到今日任务
+                </button>
+                <button onclick="deleteSelectedPoolTasks()" class="btn btn-delete-selected" style="display:none;" id="deletePoolBtn">
+                    <span class="btn-icon">🗑️</span> 删除全部
+                </button>
+            </div>`;
         }
-        html += '</h3>';
+        html += '</div>';
         html += '<div class="tasks-container">';
         if (poolTasks.length > 0) {
             html += poolTasks.map(task => renderTaskItem(task)).join('');
@@ -857,9 +1039,11 @@ function renderTaskItem(task) {
     };
     
     // 检查任务的计时器状态
-    const timerData = taskTimerData.get(task.id);
+    let timerData = taskTimerData.get(task.id);
     let hasActiveTimer = timerData && timerData.status === 'active';
     let hasPausedTimer = timerData && timerData.status === 'paused';
+    let hasElapsedTime = timerData && timerData.elapsedSeconds > 0;
+    let elapsedSeconds = timerData ? timerData.elapsedSeconds : 0;
     
     // 如果没有在内存中找到，检查localStorage
     if (!timerData) {
@@ -871,6 +1055,10 @@ function renderTaskItem(task) {
                     const savedData = timersData[task.id];
                     hasActiveTimer = savedData.status === 'active';
                     hasPausedTimer = savedData.status === 'paused';
+                    hasElapsedTime = savedData.elapsedSeconds > 0;
+                    elapsedSeconds = savedData.elapsedSeconds || 0;
+                    // 创建一个临时的timerData对象，供模板使用
+                    timerData = savedData;
                 }
             } catch (e) {
                 // 忽略错误
@@ -879,7 +1067,7 @@ function renderTaskItem(task) {
     }
     
     return `
-        <div class="task-item ${task.domain} ${task.status}" 
+        <div class="task-item ${task.domain} ${hasActiveTimer ? 'in-progress' : (hasPausedTimer ? 'paused' : task.status)}" 
              data-task-id="${task.id}" 
              draggable="true" 
              ondragstart="handleDragStart(event, '${task.id}')"
@@ -918,12 +1106,13 @@ function renderTaskItem(task) {
                 </div>
             </div>
             <div class="task-actions">
+                ${hasElapsedTime ? `<div class="timer-display"><span class="timer-time">⏱️ ${formatTime(elapsedSeconds)}</span></div>` : ''}
                 ${task.status !== 'completed' ? 
                     (hasActiveTimer ? 
                         `<button onclick="pauseTaskTimer('${task.id}')" class="btn-small btn-timer" style="background: #FFA500;">⏸️ 暂停</button>` :
                         (hasPausedTimer ? 
                             `<button onclick="resumeTaskTimer('${task.id}')" class="btn-small btn-timer btn-resume" style="background: #4CAF50;">▶️ 继续</button>` :
-                            `<button onclick="startTaskTimer('${task.id}', '${task.title.replace(/'/g, "\\'")}')" class="btn-small btn-timer" style="background: #4CAF50;">▶️ 开始</button>`
+                            `<button onclick="startTaskTimer('${task.id}', '${task.title.replace(/'/g, "\\'")}')" class="btn-small btn-timer" style="background: #4CAF50;">▶️ ${hasElapsedTime ? '继续' : '开始'}</button>`
                         )
                     ) : ''}
                 <input type="checkbox" class="task-select-checkbox" 
@@ -969,7 +1158,24 @@ function updateDomainDisplay(tasks) {
             .filter(t => t.status === 'pending')
             .reduce((sum, t) => sum + (t.estimated_minutes || 0), 0);
         
-        updateDomainProgress(domain, completedMinutes, inProgressMinutes, pendingMinutes);
+        // 计算真正活动的任务和暂停的任务
+        const activeMinutes = todayDomainTasks
+            .filter(t => {
+                if (t.status !== 'in_progress') return false;
+                const timerData = taskTimerData.get(t.id);
+                return timerData && timerData.status === 'active';
+            })
+            .reduce((sum, t) => sum + (t.estimated_minutes || 0), 0);
+            
+        const pausedMinutes = todayDomainTasks
+            .filter(t => {
+                if (t.status !== 'in_progress') return false;
+                const timerData = taskTimerData.get(t.id);
+                return timerData && timerData.status === 'paused';
+            })
+            .reduce((sum, t) => sum + (t.estimated_minutes || 0), 0);
+        
+        updateDomainProgress(domain, completedMinutes, activeMinutes, pausedMinutes, pendingMinutes);
     });
 }
 
@@ -1184,6 +1390,28 @@ function toggleTaskSelection(taskId) {
     }
     
     updateSelectionUI();
+    
+    // 更新任务池删除按钮的显示状态
+    updatePoolDeleteButton();
+}
+
+// 更新任务池删除按钮的显示状态
+function updatePoolDeleteButton() {
+    const deleteBtn = document.getElementById('deletePoolBtn');
+    if (!deleteBtn) return;
+    
+    // 检查选中的任务中是否有任务池中的任务
+    const poolSelectedTasks = Array.from(selectedTasks).filter(taskId => {
+        const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+        return taskElement && taskElement.closest('.tasks-pool');
+    });
+    
+    if (poolSelectedTasks.length > 0) {
+        deleteBtn.style.display = 'inline-block';
+        deleteBtn.innerHTML = `<span class="btn-icon">🗑️</span> 删除全部 (${poolSelectedTasks.length})`;
+    } else {
+        deleteBtn.style.display = 'none';
+    }
 }
 
 // 更新选择UI
@@ -1268,6 +1496,54 @@ function selectAllPoolTasks() {
         }
     });
     updateSelectionUI();
+    
+    // 显示删除按钮
+    const deleteBtn = document.getElementById('deletePoolBtn');
+    if (deleteBtn && selectedTasks.size > 0) {
+        deleteBtn.style.display = 'inline-block';
+    }
+}
+
+// 删除选中的任务池任务
+async function deleteSelectedPoolTasks() {
+    if (selectedTasks.size === 0) {
+        showToast('请先选择要删除的任务', 'warning');
+        return;
+    }
+    
+    const confirmDelete = confirm(`确定要删除选中的 ${selectedTasks.size} 个任务吗？`);
+    if (!confirmDelete) {
+        return;
+    }
+    
+    try {
+        // 批量删除任务
+        for (const taskId of selectedTasks) {
+            const response = await fetch(`${API_BASE}/tasks/${taskId}`, {
+                method: 'DELETE'
+            });
+            
+            if (!response.ok) {
+                console.error(`删除任务 ${taskId} 失败`);
+            }
+        }
+        
+        showToast(`已删除 ${selectedTasks.size} 个任务`, 'success');
+        selectedTasks.clear();
+        
+        // 隐藏删除按钮
+        const deleteBtn = document.getElementById('deletePoolBtn');
+        if (deleteBtn) {
+            deleteBtn.style.display = 'none';
+        }
+        
+        await loadTasks();
+        await updateDashboard();
+        
+    } catch (error) {
+        console.error('批量删除任务失败:', error);
+        showToast('删除失败', 'error');
+    }
 }
 
 // 将选中的任务移到今日任务
@@ -1333,19 +1609,20 @@ async function moveSelectedToToday() {
 }
 
 // 更新圆环进度显示 - 重写为更稳定的版本
-function updateDomainProgress(domain, completedMinutes, inProgressMinutes, pendingMinutes) {
+function updateDomainProgress(domain, completedMinutes, activeMinutes, pausedMinutes, pendingMinutes) {
     const card = document.querySelector(`.domain-card.${domain}`);
     if (!card) return;
     
     const svgElement = card.querySelector('svg');
     if (!svgElement) return;
     
-    const totalMinutes = completedMinutes + inProgressMinutes + pendingMinutes;
+    const totalMinutes = completedMinutes + activeMinutes + pausedMinutes + pendingMinutes;
     const maxHours = 4; // 每个域4小时
     
     // 计算角度（基于360度）
     const completedAngle = Math.min((completedMinutes / 60) / maxHours * 360, 360);
-    const inProgressAngle = Math.min((inProgressMinutes / 60) / maxHours * 360, 360);
+    const activeAngle = Math.min((activeMinutes / 60) / maxHours * 360, 360);
+    const pausedAngle = Math.min((pausedMinutes / 60) / maxHours * 360, 360);
     const pendingAngle = Math.min((pendingMinutes / 60) / maxHours * 360, 360);
     
     // 定义各域的颜色
@@ -1410,7 +1687,7 @@ function updateDomainProgress(domain, completedMinutes, inProgressMinutes, pendi
         };
     }
     
-    // 添加各部分圆弧（按顺序：待完成、进行中、已完成）
+    // 添加各部分圆弧（按顺序：已完成、活动中、暂停、待完成）
     let currentAngle = 0;
     
     // 1. 已完成部分（深色）
@@ -1419,14 +1696,20 @@ function updateDomainProgress(domain, completedMinutes, inProgressMinutes, pendi
         currentAngle = completedAngle;
     }
     
-    // 2. 进行中部分（中等透明度，带动画）
-    if (inProgressMinutes > 0) {
-        const inProgressPath = createArcPathWithClass(currentAngle, currentAngle + inProgressAngle, 0.6, 'in-progress-ring');
-        svgContent += inProgressPath;
-        currentAngle += inProgressAngle;
+    // 2. 真正活动中的任务（中等透明度，带动画）
+    if (activeMinutes > 0) {
+        const activePath = createArcPathWithClass(currentAngle, currentAngle + activeAngle, 0.6, 'in-progress-ring');
+        svgContent += activePath;
+        currentAngle += activeAngle;
     }
     
-    // 3. 待完成部分（浅色）
+    // 3. 暂停的任务（中等透明度，不带动画）
+    if (pausedMinutes > 0) {
+        svgContent += createArcPath(currentAngle, currentAngle + pausedAngle, 0.5);
+        currentAngle += pausedAngle;
+    }
+    
+    // 4. 待完成部分（浅色）
     if (pendingMinutes > 0) {
         svgContent += createArcPath(currentAngle, currentAngle + pendingAngle, 0.3);
     }
@@ -2139,43 +2422,6 @@ async function changeTaskDomain(taskId, newDomain) {
     }
 }
 
-// 键盘快捷键
-document.addEventListener('keydown', (e) => {
-    // Cmd/Ctrl + Enter 快速添加任务
-    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-        const textarea = document.getElementById('aiTaskInput');
-        if (document.activeElement === textarea) {
-            aiProcessTasks();
-        }
-    }
-    
-    // Cmd/Ctrl + O 优化日程
-    if ((e.metaKey || e.ctrlKey) && e.key === 'o') {
-        e.preventDefault();
-        optimizeSchedule();
-    }
-    
-    // Cmd/Ctrl + A 全选任务
-    if ((e.metaKey || e.ctrlKey) && e.key === 'a') {
-        const textarea = document.getElementById('aiTaskInput');
-        if (document.activeElement !== textarea) {
-            e.preventDefault();
-            allSelected = false; // 重置状态以确保切换
-            toggleSelectAll();
-        }
-    }
-    
-    // Delete 键删除选中任务
-    if (e.key === 'Delete' && selectedTasks.size > 0) {
-        deleteSelectedTasks();
-    }
-    
-    // Cmd/Ctrl + L AI 学习
-    if ((e.metaKey || e.ctrlKey) && e.key === 'l') {
-        e.preventDefault();
-        updateOntology();
-    }
-});
 
 // 页面加载完成后初始化
 // 拖放功能
@@ -2312,227 +2558,9 @@ function loadSavedTheme() {
     }
 }
 
-// 快捷键管理器
-class ShortcutManager {
-    constructor() {
-        this.shortcuts = new Map();
-        this.setupShortcuts();
-    }
-    
-    setupShortcuts() {
-        // 定义快捷键
-        this.register('n', () => {
-            document.getElementById('quickTaskInput')?.focus();
-        }, '新建任务 (N)');
-        
-        this.register('/', () => {
-            document.getElementById('quickTaskInput')?.focus();
-        }, '快速添加 (/)');
-        
-        this.register('Enter', (e) => {
-            if (e.ctrlKey || e.metaKey) {
-                if (document.getElementById('quickTaskInput') === document.activeElement) {
-                    e.preventDefault();
-                    addQuickTask();
-                } else if (document.getElementById('aiTaskInput') === document.activeElement) {
-                    e.preventDefault();
-                    aiProcessTasks();
-                }
-            }
-        }, '快速提交 (Ctrl+Enter)');
-        
-        this.register('d', (e) => {
-            if (e.ctrlKey || e.metaKey) {
-                e.preventDefault();
-                deleteSelectedTasks();
-            }
-        }, '删除选中 (Ctrl+D)');
-        
-        this.register('a', (e) => {
-            if (e.ctrlKey || e.metaKey) {
-                e.preventDefault();
-                toggleSelectAll();
-            }
-        }, '全选 (Ctrl+A)');
-        
-        this.register(' ', (e) => {
-            // 空格键 - 暂停/继续第一个进行中的任务
-            if (document.activeElement.tagName !== 'INPUT' && 
-                document.activeElement.tagName !== 'TEXTAREA' &&
-                document.activeElement.tagName !== 'SELECT') {
-                e.preventDefault();
-                this.toggleFirstActiveTask();
-            }
-        }, '暂停/继续任务 (空格)');
-        
-        // 数字键 1-4 切换域视图
-        ['1', '2', '3', '4'].forEach((num, index) => {
-            const domains = ['academic', 'income', 'growth', 'life'];
-            const names = ['学术', '收入', '成长', '生活'];
-            this.register(num, () => {
-                this.scrollToDomain(domains[index]);
-            }, `查看${names[index]}域 (${num})`);
-        });
-        
-        this.register('t', () => {
-            this.cycleTheme();
-        }, '切换主题 (T)');
-        
-        this.register('o', (e) => {
-            if (e.ctrlKey || e.metaKey) {
-                e.preventDefault();
-                optimizeSchedule();
-            }
-        }, '优化日程 (Ctrl+O)');
-        
-        this.register('Escape', () => {
-            // 关闭所有弹窗或取消当前操作
-            const helpModal = document.querySelector('[data-help-modal]');
-            if (helpModal) {
-                helpModal.remove();
-            }
-            clearInput?.();
-        }, '取消操作 (ESC)');
-        
-        this.register('?', (e) => {
-            if (e.shiftKey) {
-                e.preventDefault();
-                this.showHelp();
-            }
-        }, '显示帮助 (Shift+?)');
-    }
-    
-    register(key, handler, description) {
-        this.shortcuts.set(key, { handler, description });
-    }
-    
-    handleKeydown(event) {
-        const shortcut = this.shortcuts.get(event.key);
-        if (shortcut) {
-            shortcut.handler(event);
-        }
-    }
-    
-    toggleFirstActiveTask() {
-        // 找到第一个计时器按钮
-        const timerButton = document.querySelector('.btn-timer');
-        if (timerButton) {
-            timerButton.click();
-            showToast('⚡ 快捷键操作：切换任务状态', 'info');
-        } else {
-            showToast('ℹ️ 没有找到可操作的任务', 'info');
-        }
-    }
-    
-    scrollToDomain(domain) {
-        const domainCard = document.querySelector(`.domain-card.${domain}`);
-        if (domainCard) {
-            domainCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            // 高亮动画
-            domainCard.style.transition = 'all 0.3s ease';
-            domainCard.style.transform = 'scale(1.05)';
-            domainCard.style.boxShadow = '0 8px 32px rgba(66, 133, 244, 0.3)';
-            setTimeout(() => {
-                domainCard.style.transform = '';
-                domainCard.style.boxShadow = '';
-            }, 1000);
-            
-            const names = {academic: '学术', income: '收入', growth: '成长', life: '生活'};
-            showToast(`📍 切换到${names[domain]}域`, 'info');
-        }
-    }
-    
-    cycleTheme() {
-        const themeSelect = document.getElementById('theme-select');
-        const themes = ['default', 'dark'];
-        const themeNames = ['默认 macOS', '深色模式'];
-        const currentIndex = themes.indexOf(themeSelect.value);
-        const nextIndex = (currentIndex + 1) % themes.length;
-        changeTheme(themes[nextIndex]);
-        themeSelect.value = themes[nextIndex];
-        showToast(`🎨 主题: ${themeNames[nextIndex]}`, 'info');
-    }
-    
-    showHelp() {
-        // 删除已存在的帮助弹窗
-        const existingModal = document.querySelector('[data-help-modal]');
-        if (existingModal) {
-            existingModal.remove();
-            return;
-        }
-        
-        const shortcuts = Array.from(this.shortcuts.entries())
-            .filter(([key, {description}]) => description) // 只显示有描述的
-            .map(([key, {description}]) => {
-                let displayKey = key;
-                if (key === ' ') displayKey = 'Space';
-                if (key === 'Escape') displayKey = 'ESC';
-                return `<div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee;">
-                    <span style="font-weight: 500; color: #333;">${displayKey}</span>
-                    <span style="color: #666;">${description}</span>
-                </div>`;
-            });
-        
-        // 创建帮助弹窗
-        const helpModal = document.createElement('div');
-        helpModal.setAttribute('data-help-modal', 'true');
-        helpModal.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            z-index: 10000;
-            max-width: 600px;
-            max-height: 80vh;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-        `;
-        
-        helpModal.innerHTML = `
-            <div style="display: flex; align-items: center; margin-bottom: 25px;">
-                <h2 style="margin: 0; color: #333; font-size: 24px;">⌨️ 快捷键帮助</h2>
-                <button onclick="this.parentElement.parentElement.remove()" 
-                        style="margin-left: auto; padding: 8px 12px; 
-                               background: #f5f5f5; color: #666; 
-                               border: none; border-radius: 6px; 
-                               cursor: pointer; font-size: 14px;">✕</button>
-            </div>
-            <div style="font-family: 'SF Mono', Monaco, monospace; line-height: 1.6; font-size: 14px;">
-                ${shortcuts.join('')}
-            </div>
-            <div style="margin-top: 20px; text-align: center; color: #888; font-size: 12px;">
-                按 ESC 或点击外部区域关闭
-            </div>
-        `;
-        
-        document.body.appendChild(helpModal);
-        
-        // 点击外部关闭
-        setTimeout(() => {
-            const closeOnClickOutside = (e) => {
-                if (!helpModal.contains(e.target)) {
-                    helpModal.remove();
-                    document.removeEventListener('click', closeOnClickOutside);
-                }
-            };
-            document.addEventListener('click', closeOnClickOutside);
-        }, 100);
-    }
-}
-
-// 初始化快捷键管理器
-let shortcutManager;
 
 document.addEventListener('DOMContentLoaded', () => {
     loadSavedTheme();
-    
-    // 初始化快捷键管理器
-    shortcutManager = new ShortcutManager();
-    document.addEventListener('keydown', (e) => shortcutManager.handleKeydown(e));
     
     // 加载暂停的计时器
     loadPausedTimersFromLocalStorage();
@@ -2548,25 +2576,4 @@ document.addEventListener('DOMContentLoaded', () => {
         updateDashboard();
         setupTaskReminders(); // 定期检查新的提醒
     }, 60000);
-    
-    // 输入框支持 Cmd+Enter 提交（保持原有功能）
-    document.getElementById('aiTaskInput').addEventListener('keydown', (e) => {
-        if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-            e.preventDefault();
-            aiProcessTasks();
-        }
-    });
-    
-    // 快速任务输入框也支持 Enter 提交
-    document.getElementById('quickTaskInput').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            addQuickTask();
-        }
-    });
-    
-    // 显示快捷键提示
-    setTimeout(() => {
-        showToast('💡 按 Shift+? 查看快捷键帮助', 'info');
-    }, 3000);
 });
