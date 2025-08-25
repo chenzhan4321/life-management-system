@@ -2518,8 +2518,8 @@ function getStatusName(status) {
 // 主题切换功能
 function changeTheme(themeName) {
     const themeLink = document.getElementById('theme-stylesheet');
-    // 修复路径问题
-    const basePath = window.location.pathname.includes('.html') ? '.' : '/static';
+    // 修复路径问题 - 适配 GitHub Pages
+    const basePath = window.location.hostname === 'localhost' ? '.' : '/life-management-system/static';
     themeLink.href = `${basePath}/theme-${themeName}.css`;
     
     // 保存到 localStorage
@@ -2544,7 +2544,7 @@ function loadSavedTheme() {
     const validTheme = savedTheme === 'modernist' ? 'default' : savedTheme;
     
     const themeLink = document.getElementById('theme-stylesheet');
-    const basePath = window.location.pathname.includes('.html') ? '.' : '/static';
+    const basePath = window.location.hostname === 'localhost' ? '.' : '/life-management-system/static';
     themeLink.href = `${basePath}/theme-${validTheme}.css`;
     
     const themeSelect = document.getElementById('theme-select');
