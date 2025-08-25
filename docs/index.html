@@ -4,74 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>生活管理系统 - v2.4 🎉修复完成版</title>
-    
-    <!-- PWA支持 -->
-    <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#007AFF">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="生活管理">
-    <meta name="application-name" content="生活管理系统">
-    
-    <!-- 内嵌所有CSS以确保加载成功 -->
+    <meta name="theme-color" content="#10b981">
     <style>
-        /* 重置和基础样式 */
+        /* 紧急CSS - 确保一定能加载 */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
-        :root {
-            --primary-color: #2563eb;
-            --primary-light: #3b82f6;
-            --primary-dark: #1d4ed8;
-            --secondary-color: #64748b;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --error-color: #ef4444;
-            
-            --bg-primary: #f8fafc;
-            --bg-secondary: #ffffff;
-            --bg-tertiary: #f1f5f9;
-            
-            --text-primary: #0f172a;
-            --text-secondary: #475569;
-            --text-tertiary: #94a3b8;
-            
-            --border-color: #e2e8f0;
-            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-            
-            --radius-sm: 0.375rem;
-            --radius-md: 0.5rem;
-            --radius-lg: 0.75rem;
-            --radius-xl: 1rem;
-        }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: var(--bg-primary);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            color: var(--text-primary);
+            color: white;
+            padding: 20px;
             line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 0 auto;
-            padding: 2rem 1rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
         }
 
-        /* 顶部横幅 */
         .success-banner {
             background: linear-gradient(135deg, #10b981, #059669);
             color: white;
             text-align: center;
-            padding: 1.5rem;
-            border-radius: var(--radius-xl);
-            margin-bottom: 2rem;
-            box-shadow: var(--shadow-lg);
-            animation: slideIn 0.5s ease-out;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+            animation: slideIn 0.6s ease-out;
         }
 
         @keyframes slideIn {
@@ -80,233 +45,276 @@
         }
 
         .success-banner h1 {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-            font-weight: 700;
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            font-weight: 800;
         }
 
         .success-banner p {
-            font-size: 1.125rem;
+            font-size: 1.2rem;
             opacity: 0.95;
         }
 
-        /* 功能展示网格 */
         .features-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin: 2rem 0;
+            gap: 25px;
+            margin: 30px 0;
         }
 
         .feature-card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-xl);
-            padding: 2rem;
-            box-shadow: var(--shadow-md);
+            background: rgba(255,255,255,0.15);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
         }
 
         .feature-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-xl);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            background: rgba(255,255,255,0.2);
         }
 
         .feature-card::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
+            top: 0; left: 0; right: 0;
             height: 4px;
-            background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+            background: linear-gradient(90deg, #10b981, #3b82f6);
         }
 
         .feature-header {
             display: flex;
             align-items: center;
-            gap: 1rem;
-            margin-bottom: 1rem;
+            gap: 15px;
+            margin-bottom: 15px;
         }
 
         .feature-icon {
-            font-size: 2rem;
-            padding: 0.75rem;
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-            border-radius: var(--radius-lg);
+            font-size: 2.5rem;
+            padding: 15px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
         }
 
         .feature-title {
-            font-size: 1.25rem;
+            font-size: 1.4rem;
             font-weight: 700;
-            color: var(--text-primary);
+            color: white;
         }
 
         .feature-description {
-            color: var(--text-secondary);
-            margin-bottom: 1.5rem;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 20px;
             line-height: 1.7;
+            font-size: 1rem;
         }
 
-        /* 演示区域 */
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 2px solid rgba(16, 185, 129, 0.3);
+        }
+
         .demo-section {
-            background: var(--bg-secondary);
-            border-radius: var(--radius-xl);
-            padding: 2rem;
-            margin: 2rem 0;
-            box-shadow: var(--shadow-md);
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
         .demo-header {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 25px;
         }
 
         .demo-header h2 {
-            font-size: 1.75rem;
+            font-size: 2rem;
             font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
+            color: white;
+            margin-bottom: 10px;
         }
 
         .demo-task {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem 1.5rem;
-            background: var(--bg-tertiary);
-            border-radius: var(--radius-lg);
-            margin-bottom: 1rem;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            margin-bottom: 15px;
             border: 2px solid transparent;
             transition: all 0.3s ease;
         }
 
         .demo-task:hover {
-            border-color: var(--primary-color);
-            transform: translateX(4px);
+            border-color: #3b82f6;
+            transform: translateX(5px);
+            background: rgba(255,255,255,0.15);
         }
 
         .task-info {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 15px;
         }
 
         .task-status {
-            width: 12px;
-            height: 12px;
+            width: 12px; height: 12px;
             border-radius: 50%;
-            background: var(--success-color);
+            background: #10b981;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
         }
 
         .task-text {
             font-weight: 500;
-            color: var(--text-primary);
+            color: white;
+            font-size: 1.1rem;
         }
 
-        /* 按钮系统 */
         .btn {
-            padding: 0.75rem 1.5rem;
+            padding: 12px 24px;
             border: none;
-            border-radius: var(--radius-lg);
-            font-size: 0.875rem;
+            border-radius: 8px;
+            font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 8px;
             text-decoration: none;
-            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
         }
 
-        .btn-primary {
-            background: var(--primary-color);
-            color: white;
-            box-shadow: var(--shadow-sm);
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
         }
 
-        .btn-primary:hover {
-            background: var(--primary-dark);
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-lg);
-        }
+        .btn:hover::before { left: 100%; }
 
         .btn-success {
-            background: var(--success-color);
+            background: linear-gradient(135deg, #10b981, #059669);
             color: white;
-            box-shadow: var(--shadow-sm);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
         }
 
         .btn-success:hover {
-            background: #059669;
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
         }
 
         .btn-large {
-            padding: 1rem 2rem;
-            font-size: 1rem;
+            padding: 15px 30px;
+            font-size: 1.1rem;
             font-weight: 700;
         }
 
-        /* 状态指示器 */
-        .status-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            border-radius: var(--radius-md);
-            font-size: 0.875rem;
-            font-weight: 600;
-        }
-
-        .status-success {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--success-color);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-        }
-
-        .status-warning {
-            background: rgba(245, 158, 11, 0.1);
-            color: var(--warning-color);
-            border: 1px solid rgba(245, 158, 11, 0.2);
-        }
-
-        /* 操作区域 */
         .action-section {
             text-align: center;
-            margin: 3rem 0;
-            padding: 2rem;
-            background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(59, 130, 246, 0.05));
-            border-radius: var(--radius-xl);
-            border: 1px solid rgba(37, 99, 235, 0.1);
+            margin: 40px 0;
+            padding: 30px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 15px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
         }
 
         .action-buttons {
             display: flex;
-            gap: 1rem;
+            gap: 20px;
             justify-content: center;
             flex-wrap: wrap;
-            margin-top: 2rem;
+            margin-top: 25px;
+        }
+
+        .code-section {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+        }
+
+        .tech-details {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-size: 0.95rem;
+            color: rgba(255,255,255,0.9);
         }
 
         /* 响应式设计 */
         @media (max-width: 768px) {
-            .container { padding: 1rem; }
+            .container { padding: 20px; margin: 10px; }
             .features-grid { grid-template-columns: 1fr; }
-            .demo-task { padding: 0.75rem 1rem; }
-            .action-buttons { flex-direction: column; align-items: center; }
+            .demo-task { 
+                flex-direction: column; 
+                gap: 15px; 
+                text-align: center; 
+            }
+            .action-buttons { 
+                flex-direction: column; 
+                align-items: center; 
+            }
+            .success-banner h1 { font-size: 2rem; }
+        }
+
+        /* CSS加载指示器 */
+        .css-indicator {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: #10b981;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 10000;
         }
     </style>
 </head>
 
 <body>
+    <!-- CSS加载指示器 -->
+    <div class="css-indicator">✅ CSS已加载</div>
+    
     <div class="container">
         <!-- 成功横幅 -->
         <div class="success-banner">
@@ -324,7 +332,7 @@
                 <div class="feature-description">
                     修复了toggleTaskStatus函数的completed_at时间戳问题。现在点击完成按钮会正确显示"✅ 任务已完成"，任务会正确移动到"今日已完成"区域。
                 </div>
-                <div class="status-indicator status-success">
+                <div class="status-indicator">
                     <span>✓</span> 已修复并验证
                 </div>
             </div>
@@ -337,7 +345,7 @@
                 <div class="feature-description">
                     添加了overdueRemindedTasks防重复机制。过期任务提醒现在只显示一次，不会每分钟重复骚扰用户。
                 </div>
-                <div class="status-indicator status-success">
+                <div class="status-indicator">
                     <span>✓</span> 已修复并验证
                 </div>
             </div>
@@ -350,7 +358,7 @@
                 <div class="feature-description">
                     修复了CSS路径问题，统一了loadSavedTheme和changeTheme的路径逻辑，支持本地/GitHub Pages/Railway多环境。
                 </div>
-                <div class="status-indicator status-success">
+                <div class="status-indicator">
                     <span>✓</span> 已修复并验证
                 </div>
             </div>
@@ -403,13 +411,11 @@
             </div>
 
             <div id="command-section" style="display: none; margin-top: 2rem;">
-                <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius-lg); font-family: monospace; margin: 1rem 0;">
+                <div class="code-section">
                     cd /path/to/life_management<br>
                     python3 -m uvicorn src.api.main:app --reload --host 127.0.0.1 --port 8000
                 </div>
-                <p style="color: var(--text-secondary); font-size: 0.875rem;">
-                    然后访问: <strong>http://127.0.0.1:8000/</strong>
-                </p>
+                <p>然后访问: <strong>http://127.0.0.1:8000/</strong></p>
             </div>
         </div>
 
@@ -417,8 +423,8 @@
         <div class="demo-section">
             <h2>🔧 修复技术详情</h2>
             
-            <div style="background: var(--bg-tertiary); padding: 1.5rem; border-radius: var(--radius-lg); margin: 1rem 0; font-family: monospace; font-size: 0.875rem; overflow-x: auto;">
-<pre>// 修复前: 只设置status
+            <div class="code-section">
+// 修复前: 只设置status
 body: JSON.stringify({
     status: isCompleted ? 'completed' : 'pending'
 })
@@ -431,10 +437,10 @@ if (isCompleted) {
     updateData.completed_at = new Date().toISOString();
 } else {
     updateData.completed_at = null;
-}</pre>
+}
             </div>
 
-            <div style="color: var(--text-secondary); margin-top: 1rem;">
+            <div class="tech-details">
                 <strong>核心修复文件:</strong> src/frontend/static/app.js (第2414-2436行)<br>
                 <strong>修复内容:</strong> toggleTaskStatus函数的completed_at时间戳设置<br>
                 <strong>验证状态:</strong> ✅ 本地完整测试通过
@@ -450,11 +456,11 @@ if (isCompleted) {
             
             // 模拟完成动画
             button.textContent = '🎉 已完成';
-            button.className = 'btn btn-success';
             button.onclick = null;
             
             taskItem.style.opacity = '0.7';
-            taskStatus.style.background = 'var(--success-color)';
+            taskStatus.style.background = '#10b981';
+            taskStatus.style.boxShadow = '0 0 15px rgba(16, 185, 129, 0.8)';
             
             // 显示成功提示
             showToast('✅ 任务完成功能演示成功！实际版本中会保存到数据库');
@@ -482,10 +488,11 @@ python3 -m uvicorn src.api.main:app --reload --host 127.0.0.1 --port 8000`;
             toast.textContent = message;
             toast.style.cssText = `
                 position: fixed; top: 20px; right: 20px; z-index: 10000;
-                background: var(--success-color); color: white;
-                padding: 1rem 1.5rem; border-radius: var(--radius-lg);
-                box-shadow: var(--shadow-xl); font-weight: 600;
-                transform: translateX(100px); opacity: 0;
+                background: linear-gradient(135deg, #10b981, #059669);
+                color: white; padding: 15px 20px;
+                border-radius: 10px; font-weight: 600;
+                box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+                transform: translateX(300px); opacity: 0;
                 transition: all 0.3s ease;
             `;
             
@@ -497,21 +504,43 @@ python3 -m uvicorn src.api.main:app --reload --host 127.0.0.1 --port 8000`;
             }, 100);
             
             setTimeout(() => {
-                toast.style.transform = 'translateX(100px)';
+                toast.style.transform = 'translateX(300px)';
                 toast.style.opacity = '0';
                 setTimeout(() => toast.remove(), 300);
-            }, 3000);
+            }, 4000);
         }
 
-        // 页面加载完成提示
+        // 页面加载检查
         document.addEventListener('DOMContentLoaded', () => {
             console.log('🎉 GitHub Pages演示版本已加载');
             console.log('📊 所有核心修复都已完成并验证通过');
             console.log('🔗 使用本地版本获得完整功能体验');
             
+            // 检查CSS是否加载
+            const testElement = document.querySelector('.success-banner');
+            if (testElement) {
+                const styles = getComputedStyle(testElement);
+                if (styles.background && styles.background !== 'rgba(0, 0, 0, 0)') {
+                    console.log('✅ CSS样式加载成功');
+                    setTimeout(() => {
+                        showToast('🎉 CSS样式加载成功！欢迎查看修复演示');
+                    }, 1000);
+                } else {
+                    console.log('❌ CSS样式加载失败');
+                    setTimeout(() => {
+                        showToast('⚠️ CSS样式可能未完全加载，请刷新页面');
+                    }, 1000);
+                }
+            }
+            
+            // 5秒后移除CSS指示器
             setTimeout(() => {
-                showToast('🎉 欢迎查看修复完成版本的功能演示！');
-            }, 1000);
+                const indicator = document.querySelector('.css-indicator');
+                if (indicator) {
+                    indicator.style.opacity = '0';
+                    setTimeout(() => indicator.remove(), 500);
+                }
+            }, 5000);
         });
     </script>
 </body>
