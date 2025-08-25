@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>GitHub Pages 缓存测试 - v2.4.1</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px;
+            background: linear-gradient(135deg, #ff6b35, #ff8e3c);
+            color: white;
+        }
+        .test-box {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .timestamp {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ffff00;
+        }
+        .status {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-box">
+        <h1>🔥 GitHub Pages 部署测试</h1>
+        <div class="timestamp" id="timestamp"></div>
+        <div class="status">
+            ✅ 如果你能看到这个页面，说明GitHub Pages已经更新！<br>
+            📅 部署时间: 2025-08-25 14:15 UTC<br>
+            🔖 版本: v2.4.1 修复版
+        </div>
+        <div style="margin-top: 30px;">
+            <a href="./" style="color: #ffff00; font-size: 18px; text-decoration: none; border: 2px solid #ffff00; padding: 10px 20px; border-radius: 5px;">
+                🏠 返回主页测试修复功能
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('timestamp').textContent = new Date().toLocaleString();
+        console.log('🎉 GitHub Pages 缓存测试成功！时间：', new Date());
+    </script>
+</body>
+</html>
