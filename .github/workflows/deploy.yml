@@ -55,21 +55,24 @@ jobs:
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       run: |
-        echo "Logging into Railway..."
-        railway login --token $RAILWAY_TOKEN
-        railway whoami
+        echo "Setting Railway token..."
+        echo "Token configured for Railway CLI"
         
-    - name: Initialize Railway project
+    - name: Connect to Railway project
       if: steps.check-token.outputs.has_token == 'true'
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       run: |
-        echo "Initializing Railway project..."
-        railway init --name life-management-system || echo "Project may already exist"
+        echo "Connecting to Railway project..."
+        railway link --project 07b68028-eece-48f3-b9c8-abb0371f384a || echo "Link may already exist"
         
     - name: Deploy to Railway
       if: steps.check-token.outputs.has_token == 'true'
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       run: |
         echo "Deploying to Railway..."
-        railway up --detach
+        railway up
         
     - name: Railway deployment skipped
       if: steps.check-token.outputs.has_token == 'false'
