@@ -3,30 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>生活管理系统 - Palantir 架构</title>
+    <title>生活管理系统 - Palantir 架构 v2.4 🔥修复版</title>
     
     <!-- PWA支持 -->
-    <link rel="manifest" href="/life-management-system/static/manifest.json">
+    <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#007AFF">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="生活管理">
     <meta name="application-name" content="生活管理系统">
     <meta name="msapplication-TileColor" content="#007AFF">
-    <meta name="msapplication-config" content="/life-management-system/static/browserconfig.xml">
+    <meta name="msapplication-config" content="./browserconfig.xml">
     
     <!-- iOS Safari 支持 -->
-    <link rel="apple-touch-icon" sizes="180x180" href="/life-management-system/static/icon-192x192.png">
-    <link rel="apple-touch-startup-image" href="/life-management-system/static/icon-512x192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="./icon-192x192.png">
+    <link rel="apple-touch-startup-image" href="./icon-512x192.png">
     
     <!-- Android Chrome 支持 -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-status-bar-style" content="default">
     
     <!-- 主题样式 -->
-    <link id="theme-stylesheet" rel="stylesheet" href="/life-management-system/static/theme-default.css">
+    <link id="theme-stylesheet" rel="stylesheet" href="./theme-default.css">
     <!-- 移动端响应式样式 -->
-    <link rel="stylesheet" href="/life-management-system/static/mobile.css">
+    <link rel="stylesheet" href="./mobile.css">
 </head>
 <body>
     <!-- 主题切换器 -->
@@ -43,7 +43,7 @@
         <nav class="navbar">
             <div class="nav-brand">
                 <span class="logo">🎯</span>
-                <h1>生活管理系统</h1>
+                <h1>生活管理系统 <span style="font-size: 12px; background: #ff4757; color: white; padding: 2px 6px; border-radius: 3px;">v2.4 🔥修复版</span></h1>
             </div>
             <div class="nav-stats">
                 <div class="stat-item">
@@ -238,14 +238,14 @@
         </div>
     </div>
 
-    <script src="/life-management-system/static/app.js"></script>
+    <script src="./app.js?v=20250825-5-FIXED"></script>
     
     <!-- PWA支持脚本 -->
     <script>
         // Service Worker 注册
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/life-management-system/static/sw.js')
+                navigator.serviceWorker.register('./sw.js')
                     .then(registration => {
                         console.log('SW registered: ', registration);
                         
