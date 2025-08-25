@@ -921,7 +921,7 @@ async function loadTasks() {
         // 如果已经是静态模式（GitHub Pages），直接加载静态数据
         if (STATIC_MODE) {
             console.log('静态模式：加载静态数据...');
-            const basePath = window.location.hostname === 'localhost' ? '.' : '/life-management-system/static';
+            const basePath = window.location.hostname === 'localhost' ? '.' : '/life-management-system';
             response = await fetch(`${basePath}/tasks-data.json`);
             data = await response.json();
         } else {
@@ -940,7 +940,7 @@ async function loadTasks() {
                 console.error('API连接失败:', apiError.message);
                 console.log('切换到静态模式');
                 STATIC_MODE = true;
-                const basePath = window.location.hostname === 'localhost' ? '.' : '/life-management-system/static';
+                const basePath = window.location.hostname === 'localhost' ? '.' : '/life-management-system';
                 response = await fetch(`${basePath}/tasks-data.json`);
                 data = await response.json();
             }
@@ -2601,7 +2601,7 @@ function changeTheme(themeName) {
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         basePath = '/static'; // 本地开发服务器
     } else if (window.location.hostname.includes('github.io')) {
-        basePath = '/life-management-system/static'; // GitHub Pages
+        basePath = '/life-management-system'; // GitHub Pages
     } else {
         basePath = '/static'; // Railway 或其他服务器
     }
@@ -2634,7 +2634,7 @@ function loadSavedTheme() {
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         basePath = '/static'; // 本地开发服务器
     } else if (window.location.hostname.includes('github.io')) {
-        basePath = '/life-management-system/static'; // GitHub Pages
+        basePath = '/life-management-system'; // GitHub Pages
     } else {
         basePath = '/static'; // Railway 或其他服务器
     }
