@@ -2,7 +2,7 @@
 
 > 基于 Palantir 数据架构原理的现代生活管理平台
 
-🚀 **部署状态**: Railway后端已配置 - 重新部署中...
+🚀 **部署状态**: Railway token已配置 - 启动完整后端部署...
 
 [![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com)
