@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生活管理系统 - 本地开发版 v2.3</title>
+    
+    <!-- PWA支持 -->
+    <link rel="manifest" href="./static/manifest.json">
+    <meta name="theme-color" content="#007AFF">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="生活管理">
+    <meta name="application-name" content="生活管理系统">
+    <meta name="msapplication-TileColor" content="#007AFF">
+    <meta name="msapplication-config" content="./static/browserconfig.xml">
+    
+    <!-- iOS Safari 支持 -->
+    <link rel="apple-touch-icon" sizes="180x180" href="./static/icon-192x192.png">
+    <link rel="apple-touch-startup-image" href="./static/icon-512x192.png">
+    
+    <!-- Android Chrome 支持 -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-status-bar-style" content="default">
+    
+    <!-- 主题样式 -->
+    <link id="theme-stylesheet" rel="stylesheet" href="./static/theme-default.css">
+    <!-- 移动端响应式样式 -->
+    <link rel="stylesheet" href="./static/mobile.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <h1>🎯 生活管理系统 <span style="font-size: 14px; color: #666; font-weight: normal;">- Palantir 架构 v2.3 (本地开发版)</span></h1>
+                <div class="status-indicators">
+                    <div class="api-status" id="apiStatus">🔄 连接中...</div>
+                </div>
+            </div>
+            <div class="header-right">
+                <!-- 主题切换按钮 -->
+                <div class="theme-switcher">
+                    <label class="switch">
+                        <input type="checkbox" id="themeToggle">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="theme-label">🌙</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI 任务输入区域 -->
+        <div class="ai-input-section">
+            <h2>🤖 AI 助手</h2>
+            <div class="input-group">
+                <textarea 
+                    id="aiInput" 
+                    placeholder="描述你的需求，AI将为你生成具体的任务清单...&#10;例如：明天要准备考试，需要复习数学和英语，还要写一份报告"
+                    rows="3"
+                ></textarea>
+                <button onclick="submitToAI()" class="btn btn-primary">
+                    <span class="btn-icon">✨</span> 生成任务
+                </button>
+            </div>
+        </div>
+
+        <!-- 手动任务输入区域 -->
+        <div class="manual-input-section">
+            <h2>📝 手动添加任务</h2>
+            <div class="input-group">
+                <input 
+                    type="text" 
+                    id="quickTaskInput" 
+                    placeholder="快速添加任务..."
+                    class="quick-task-input"
+                    onkeypress="if(event.key==='Enter') addQuickTask()"
+                >
+                <button onclick="addQuickTask()" class="btn btn-secondary">
+                    <span class="btn-icon">➕</span> 添加
+                </button>
+            </div>
+        </div>
+
+        <!-- 仪表板 -->
+        <div class="dashboard">
+            <div class="time-allocation">
+                <h2>⏰ 今日时间分配目标</h2>
+                <div class="domains-grid">
+                    <!-- Academic Domain -->
+                    <div class="domain-card academic" data-domain="academic">
+                        <div class="domain-header">
+                            <h3>📚 学术研究</h3>
+                            <button onclick="toggleDomainTasks('academic')" class="toggle-btn">👁️</button>
+                        </div>
+                        <div class="progress-container">
+                            <svg class="progress-ring" width="120" height="120">
+                                <circle cx="60" cy="60" r="54" fill="none" stroke="#e0e0e0" stroke-width="8"/>
+                                <circle cx="60" cy="60" r="54" fill="none" stroke="#4285F4" stroke-width="8"
+                                        stroke-dasharray="339.292" stroke-dashoffset="339.292"
+                                        class="progress-ring-circle" id="academicProgress"/>
+                            </svg>
+                            <div class="progress-text">
+                                <span class="hours">0/6</span>
+                                <span class="label">小时</span>
+                            </div>
+                        </div>
+                        <div class="domain-tasks" id="academicTasks"></div>
+                    </div>
+
+                    <!-- Income Domain -->
+                    <div class="domain-card income" data-domain="income">
+                        <div class="domain-header">
+                            <h3>💰 收入工作</h3>
+                            <button onclick="toggleDomainTasks('income')" class="toggle-btn">👁️</button>
+                        </div>
+                        <div class="progress-container">
+                            <svg class="progress-ring" width="120" height="120">
+                                <circle cx="60" cy="60" r="54" fill="none" stroke="#e0e0e0" stroke-width="8"/>
+                                <circle cx="60" cy="60" r="54" fill="none" stroke="#34A853" stroke-width="8"
+                                        stroke-dasharray="339.292" stroke-dashoffset="339.292"
+                                        class="progress-ring-circle" id="incomeProgress"/>
+                            </svg>
+                            <div class="progress-text">
+                                <span class="hours">0/6</span>
+                                <span class="label">小时</span>
+                            </div>
+                        </div>
+                        <div class="domain-tasks" id="incomeTasks"></div>
+                    </div>
+
+                    <!-- Growth Domain -->
+                    <div class="domain-card growth" data-domain="growth">
+                        <div class="domain-header">
+                            <h3>🌱 个人成长</h3>
+                            <button onclick="toggleDomainTasks('growth')" class="toggle-btn">👁️</button>
+                        </div>
+                        <div class="progress-container">
+                            <svg class="progress-ring" width="120" height="120">
+                                <circle cx="60" cy="60" r="54" fill="none" stroke="#e0e0e0" stroke-width="8"/>
+                                <circle cx="60" cy="60" r="54" fill="none" stroke="#FBBC04" stroke-width="8"
+                                        stroke-dasharray="339.292" stroke-dashoffset="339.292"
+                                        class="progress-ring-circle" id="growthProgress"/>
+                            </svg>
+                            <div class="progress-text">
+                                <span class="hours">0/4</span>
+                                <span class="label">小时</span>
+                            </div>
+                        </div>
+                        <div class="domain-tasks" id="growthTasks"></div>
+                    </div>
+
+                    <!-- Life Domain -->
+                    <div class="domain-card life" data-domain="life">
+                        <div class="domain-header">
+                            <h3>🏡 生活事务</h3>
+                            <button onclick="toggleDomainTasks('life')" class="toggle-btn">👁️</button>
+                        </div>
+                        <div class="progress-container">
+                            <svg class="progress-ring" width="120" height="120">
+                                <circle cx="60" cy="60" r="54" fill="none" stroke="#e0e0e0" stroke-width="8"/>
+                                <circle cx="60" cy="60" r="54" fill="none" stroke="#EA4335" stroke-width="8"
+                                        stroke-dasharray="339.292" stroke-dashoffset="339.292"
+                                        class="progress-ring-circle" id="lifeProgress"/>
+                            </svg>
+                            <div class="progress-text">
+                                <span class="hours">0/4</span>
+                                <span class="label">小时</span>
+                            </div>
+                        </div>
+                        <div class="domain-tasks" id="lifeTasks"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 任务列表 -->
+        <div class="tasks-section">
+            <div class="section-header">
+                <h2>📋 任务管理</h2>
+                <div class="section-actions">
+                    <button onclick="optimizeSchedule()" class="btn btn-optimize">
+                        <span class="btn-icon">🎯</span> AI优化时间表
+                    </button>
+                </div>
+            </div>
+            <div id="tasksList" class="tasks-list">
+                <!-- 任务将通过JavaScript动态加载 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 浮动操作按钮 -->
+    <div class="fab-container">
+        <button class="fab" onclick="document.getElementById('aiInput').focus(); document.getElementById('aiInput').scrollIntoView({behavior: 'smooth'})">
+            <span>✨</span>
+        </button>
+    </div>
+
+    <!-- 时间选择器模态框 -->
+    <div id="timeModal" class="modal">
+        <div class="modal-content">
+            <h3>⏰ 设置任务时间</h3>
+            <div class="time-inputs">
+                <label>计划开始时间：</label>
+                <input type="datetime-local" id="scheduledStart">
+                <label>计划结束时间：</label>
+                <input type="datetime-local" id="scheduledEnd">
+                <label>预估时长（分钟）：</label>
+                <input type="number" id="estimatedMinutes" placeholder="60" min="1">
+            </div>
+            <div class="modal-actions">
+                <button onclick="saveTaskTime()" class="btn btn-primary">保存</button>
+                <button onclick="clearTaskTime()" class="btn btn-secondary">清除</button>
+                <button onclick="closeTimeSelector()" class="btn btn-cancel">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PWA 安装横幅 -->
+    <div id="pwa-banner" class="pwa-banner" style="display: none;">
+        <span>🚀 安装生活管理系统到您的设备</span>
+        <div class="pwa-banner-actions">
+            <button id="pwa-install-btn" class="btn btn-primary">安装</button>
+            <button id="pwa-dismiss-btn" class="btn btn-secondary">稍后</button>
+        </div>
+    </div>
+
+    <script src="./static/app.js?v=20250825-local"></script>
+    
+    <!-- PWA支持脚本 -->
+    <script>
+        // Service Worker 注册
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(registrationError => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+
+        // PWA 安装提示
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('pwa-banner').style.display = 'flex';
+        });
+
+        document.getElementById('pwa-install-btn').addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`用户选择了: ${outcome}`);
+                deferredPrompt = null;
+                document.getElementById('pwa-banner').style.display = 'none';
+            }
+        });
+
+        document.getElementById('pwa-dismiss-btn').addEventListener('click', () => {
+            document.getElementById('pwa-banner').style.display = 'none';
+        });
+
+        // 网络状态监控
+        window.addEventListener('online', () => {
+            console.log('网络已连接');
+            location.reload();
+        });
+
+        window.addEventListener('offline', () => {
+            console.log('网络已断开');
+        });
+
+        // 主题切换功能
+        const themeToggle = document.getElementById('themeToggle');
+        const themeStylesheet = document.getElementById('theme-stylesheet');
+        const themeLabel = document.querySelector('.theme-label');
+
+        // 加载保存的主题设置
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            themeToggle.checked = true;
+            themeStylesheet.href = './static/theme-dark.css';
+            themeLabel.textContent = '☀️';
+        }
+
+        themeToggle.addEventListener('change', () => {
+            if (themeToggle.checked) {
+                themeStylesheet.href = './static/theme-dark.css';
+                themeLabel.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                themeStylesheet.href = './static/theme-default.css';
+                themeLabel.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            }
+        });
+    </script>
+</body>
+</html>

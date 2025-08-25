@@ -2596,8 +2596,15 @@ function getStatusName(status) {
 // 主题切换功能
 function changeTheme(themeName) {
     const themeLink = document.getElementById('theme-stylesheet');
-    // 修复路径问题 - 适配 GitHub Pages
-    const basePath = window.location.hostname === 'localhost' ? '.' : '/life-management-system/static';
+    // 修复路径问题 - 适配不同部署环境
+    let basePath;
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        basePath = '/static'; // 本地开发服务器
+    } else if (window.location.hostname.includes('github.io')) {
+        basePath = '/life-management-system/static'; // GitHub Pages
+    } else {
+        basePath = '/static'; // Railway 或其他服务器
+    }
     themeLink.href = `${basePath}/theme-${themeName}.css`;
     
     // 保存到 localStorage
@@ -2622,7 +2629,15 @@ function loadSavedTheme() {
     const validTheme = savedTheme === 'modernist' ? 'default' : savedTheme;
     
     const themeLink = document.getElementById('theme-stylesheet');
-    const basePath = window.location.hostname === 'localhost' ? '.' : '/life-management-system/static';
+    // 使用与changeTheme相同的路径逻辑
+    let basePath;
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        basePath = '/static'; // 本地开发服务器
+    } else if (window.location.hostname.includes('github.io')) {
+        basePath = '/life-management-system/static'; // GitHub Pages
+    } else {
+        basePath = '/static'; // Railway 或其他服务器
+    }
     themeLink.href = `${basePath}/theme-${validTheme}.css`;
     
     const themeSelect = document.getElementById('theme-select');
