@@ -27,8 +27,19 @@ jobs:
       run: |
         python -m pytest tests/ || echo "No tests yet"
     
+    - name: Check Railway token
+      id: check-token
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      run: |
+        if [ -z "$RAILWAY_TOKEN" ]; then
+          echo "has_token=false" >> $GITHUB_OUTPUT
+        else
+          echo "has_token=true" >> $GITHUB_OUTPUT
+        fi
+    
     - name: Deploy to Railway
-      if: secrets.RAILWAY_TOKEN != null
+      if: steps.check-token.outputs.has_token == 'true'
       uses: bervProject/railway-deploy@main
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
@@ -36,5 +47,5 @@ jobs:
         service: life-management
         
     - name: Railway deployment skipped
-      if: secrets.RAILWAY_TOKEN == null
+      if: steps.check-token.outputs.has_token == 'false'
       run: echo "Railway token not configured, skipping deployment"
