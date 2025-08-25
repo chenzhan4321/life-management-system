@@ -28,6 +28,7 @@ let STATIC_MODE = !API_BASE; // 如果没有API则为静态模式
 let globalTimerInterval = null;
 const taskTimerData = new Map(); // 任务ID -> {status: 'active'|'paused', elapsedSeconds, startTime}
 const taskReminders = new Map(); // 存储任务提醒的 timeout ID
+const overdueRemindedTasks = new Set(); // 已提醒过期的任务ID集合，避免重复提醒
 const everStartedTasks = new Set(); // 跟踪曾经启动过的任务ID
 
 // 兼容旧代码的别名
@@ -525,8 +526,17 @@ function setupTaskReminders() {
     taskReminders.forEach(timeoutId => clearTimeout(timeoutId));
     taskReminders.clear();
     
-    // 为所有有计划时间的待完成任务设置提醒
+    // 清理已完成或已删除任务的过期提醒记录
     const tasks = window.currentTasks || [];
+    const currentTaskIds = new Set(tasks.map(t => t.id));
+    for (const taskId of overdueRemindedTasks) {
+        const task = tasks.find(t => t.id === taskId);
+        if (!task || task.status === 'completed') {
+            overdueRemindedTasks.delete(taskId);
+        }
+    }
+    
+    // 为所有有计划时间的待完成任务设置提醒
     const now = new Date();
     
     tasks.forEach(task => {
@@ -591,8 +601,11 @@ function setupTaskReminders() {
                 
                 taskReminders.set(task.id, timeoutId);
             } else if (timeUntilTask > -3600000 && timeUntilTask < -300000) { // 过去5分钟到1小时内的任务
-                // 只对已经过期超过5分钟的任务提醒（避免刚设置的时间就提醒）
-                showToast(`⚠️ 任务 "${task.title}" 已过计划时间！`, 'warning');
+                // 只对已经过期超过5分钟的任务提醒，且每个任务只提醒一次
+                if (!overdueRemindedTasks.has(task.id)) {
+                    showToast(`⚠️ 任务 "${task.title}" 已过计划时间！`, 'warning');
+                    overdueRemindedTasks.add(task.id); // 标记为已提醒
+                }
                 
                 // 添加过期样式
                 const taskElement = document.querySelector(`[data-task-id="${task.id}"]`);
@@ -2439,6 +2452,9 @@ async function toggleTaskStatus(taskId, isCompleted) {
                 taskTimerData.delete(taskId);
                 clearTaskReminder(taskId);
             }
+            
+            // 清除过期提醒记录（无论完成还是恢复）
+            overdueRemindedTasks.delete(taskId);
             
             await loadTasks();
             await updateDashboard();
