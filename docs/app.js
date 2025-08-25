@@ -1245,14 +1245,28 @@ function updateDomainDisplay(tasks) {
 // 更新仪表板
 async function updateDashboard() {
     try {
-        const response = await fetch(`${API_BASE}/analytics/daily`);
-        const data = await response.json();
+        let data = null;
         
-        // 更新统计数据
-        document.getElementById('todayCompleted').textContent = 
-            `${data.summary.completed_tasks}/${data.summary.total_tasks}`;
-        document.getElementById('productivityScore').textContent = 
-            `${data.summary.productivity_score}%`;
+        // 只在非静态模式下尝试API调用
+        if (!STATIC_MODE && API_BASE) {
+            const response = await fetch(`${API_BASE}/analytics/daily`);
+            data = await response.json();
+            
+            // 更新统计数据
+            document.getElementById('todayCompleted').textContent = 
+                `${data.summary.completed_tasks}/${data.summary.total_tasks}`;
+            document.getElementById('productivityScore').textContent = 
+                `${data.summary.productivity_score}%`;
+        } else {
+            // 静态模式下基于现有任务计算统计数据
+            const tasks = window.currentTasks || [];
+            const completedTasks = tasks.filter(t => t.status === 'completed').length;
+            const totalTasks = tasks.length;
+            const productivityScore = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+            
+            document.getElementById('todayCompleted').textContent = `${completedTasks}/${totalTasks}`;
+            document.getElementById('productivityScore').textContent = `${productivityScore}%`;
+        }
         
         // 更新各域进度 - 基于实际今日任务
         const domains = ['academic', 'income', 'growth', 'life'];
@@ -1292,8 +1306,8 @@ async function updateDashboard() {
             }
         });
         
-        // 更新 AI 洞察
-        if (data.recommendations && data.recommendations.length > 0) {
+        // 更新 AI 洞察 (只在动态模式下)
+        if (!STATIC_MODE && data && data.recommendations && data.recommendations.length > 0) {
             const insightsDiv = document.getElementById('aiInsights');
             insightsDiv.innerHTML = data.recommendations.map(rec => `
                 <div class="insight-item">${rec}</div>
