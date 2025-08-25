@@ -38,13 +38,19 @@ jobs:
           echo "has_token=true" >> $GITHUB_OUTPUT
         fi
     
+    - name: Install Railway CLI
+      if: steps.check-token.outputs.has_token == 'true'
+      run: |
+        npm install -g @railway/cli
+        
     - name: Deploy to Railway
       if: steps.check-token.outputs.has_token == 'true'
-      uses: bervProject/railway-deploy@main
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-      with:
-        service: life-management
+      run: |
+        echo "Using Railway CLI for deployment..."
+        railway login --token $RAILWAY_TOKEN
+        railway deploy --service life-management || railway deploy
         
     - name: Railway deployment skipped
       if: steps.check-token.outputs.has_token == 'false'
