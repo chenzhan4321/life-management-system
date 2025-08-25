@@ -1794,12 +1794,14 @@ async function updateTaskTitle(taskId, newTitle) {
         if (response.ok) {
             showToast('任务标题已更新', 'success');
         } else {
-            showToast('更新失败', 'error');
+            const errorText = await response.text();
+            console.error(`标题更新失败 [${response.status}]:`, errorText);
+            showToast(`标题更新失败: ${response.status}`, 'error');
             await loadTasks();
         }
     } catch (error) {
         console.error('更新任务标题失败:', error);
-        showToast('更新失败', 'error');
+        showToast(`标题更新错误: ${error.message}`, 'error');
         await loadTasks();
     }
 }
@@ -2409,14 +2411,24 @@ async function toggleTaskStatus(taskId, isCompleted) {
             }
         }
         
+        const updateData = {
+            status: isCompleted ? 'completed' : 'pending'
+        };
+        
+        // 如果任务被标记为完成，设置完成时间
+        if (isCompleted) {
+            updateData.completed_at = new Date().toISOString();
+        } else {
+            // 如果任务被标记为未完成，清除完成时间
+            updateData.completed_at = null;
+        }
+        
         const response = await fetch(`${API_BASE}/tasks/${taskId}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                status: isCompleted ? 'completed' : 'pending'
-            })
+            body: JSON.stringify(updateData)
         });
         
         if (response.ok) {
