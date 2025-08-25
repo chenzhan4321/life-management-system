@@ -28,8 +28,13 @@ jobs:
         python -m pytest tests/ || echo "No tests yet"
     
     - name: Deploy to Railway
+      if: ${{ secrets.RAILWAY_TOKEN != '' }}
       uses: bervProject/railway-deploy@main
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       with:
         service: life-management
+        
+    - name: Railway deployment skipped
+      if: ${{ secrets.RAILWAY_TOKEN == '' }}
+      run: echo "Railway token not configured, skipping deployment"
