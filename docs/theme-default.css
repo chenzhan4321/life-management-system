@@ -1,0 +1,1020 @@
+/* 默认主题 - macOS 风格 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: #333;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* 导航栏 */
+.navbar {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.logo {
+    font-size: 32px;
+}
+
+.nav-brand h1 {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.nav-stats {
+    display: flex;
+    gap: 30px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-value {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+}
+
+/* 主题切换器 */
+.theme-switcher {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.theme-switcher label {
+    font-size: 12px;
+    color: #666;
+    margin-right: 8px;
+}
+
+.theme-switcher select {
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+/* AI 智能输入 */
+.ai-input-section {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.ai-input-section h2 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.input-hint {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.input-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.process-result {
+    margin-top: 20px;
+    padding: 15px;
+    background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+    border-radius: 8px;
+    border-left: 3px solid #667eea;
+}
+
+.result-header {
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.domain-group {
+    margin-bottom: 15px;
+}
+
+.domain-title {
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: #555;
+}
+
+.result-task-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px;
+    background: white;
+    border-radius: 6px;
+    margin-bottom: 5px;
+}
+
+.task-name {
+    font-weight: 500;
+    color: #333;
+}
+
+.task-info {
+    font-size: 12px;
+    color: #666;
+}
+
+.input-group {
+    display: flex;
+    gap: 10px;
+}
+
+.task-input, textarea {
+    flex: 1;
+    padding: 12px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.task-input:focus, textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+textarea {
+    width: 100%;
+    resize: vertical;
+    font-family: inherit;
+    margin-bottom: 10px;
+}
+
+/* 按钮 */
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-secondary {
+    background: #34A853;
+    color: white;
+}
+
+.btn-optimize {
+    background: #4285F4;
+    color: white;
+}
+
+.btn-learn {
+    background: #FBBC04;
+    color: #333;
+}
+
+.btn-icon {
+    font-size: 18px;
+}
+
+/* AI 处理指示器 */
+.ai-processing {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
+    color: #667eea;
+}
+
+.loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid #e0e0e0;
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* 时间域仪表板 */
+.domain-dashboard {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.domains-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.domain-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.domain-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.domain-card.academic { border-color: #4285F4; }
+.domain-card.income { border-color: #34A853; }
+.domain-card.growth { border-color: #FBBC04; }
+.domain-card.life { border-color: #EA4335; }
+
+.domain-card h3 {
+    margin-bottom: 20px;
+    font-size: 18px;
+}
+
+/* 进度环 */
+.progress-ring {
+    position: relative;
+    display: inline-block;
+    margin: 20px 0;
+}
+
+.progress-ring-circle {
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    transition: stroke-dashoffset 0.5s ease;
+}
+
+.progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.progress-text .hours {
+    display: block;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.progress-text .label {
+    display: block;
+    font-size: 12px;
+    color: #666;
+}
+
+/* 任务列表 */
+.tasks-section {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.tasks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.task-item {
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-left: 4px solid #e0e0e0;
+    transition: all 0.3s ease;
+}
+
+.task-item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.task-item.academic { border-left-color: #4285F4; }
+.task-item.income { border-left-color: #34A853; }
+.task-item.growth { border-left-color: #FBBC04; }
+.task-item.life { border-left-color: #EA4335; }
+
+.task-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.task-content {
+    flex: 1;
+}
+
+.task-title {
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+.task-meta {
+    display: flex;
+    gap: 15px;
+    font-size: 12px;
+    color: #666;
+}
+
+.task-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* AI 洞察面板 */
+.insights-panel {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.insights-content {
+    margin-top: 15px;
+}
+
+.insight-item {
+    background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-left: 3px solid #667eea;
+}
+
+/* Toast 提示 */
+.toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: #333;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.toast.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* 任务选择框样式 */
+.task-checkbox {
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.task-item.selected {
+    background: #f0f8ff;
+    border-left: 3px solid #4285F4;
+}
+
+.btn-select-all, .btn-delete-selected {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-delete-selected {
+    background: linear-gradient(135deg, #EA4335 0%, #d33b2c 100%);
+}
+
+/* 任务类型选择器 */
+.domain-selector {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-left: 10px;
+    border: 1px solid #ddd;
+}
+
+.domain-selector:hover {
+    border-color: #4285F4;
+}
+
+.domain-selector.academic { background: #e8f0fe; color: #1967d2; }
+.domain-selector.income { background: #e6f4ea; color: #188038; }
+.domain-selector.growth { background: #fef7e0; color: #f9ab00; }
+.domain-selector.life { background: #fce8e6; color: #d33b2c; }
+
+/* 内联编辑样式 */
+.inline-edit-number, .inline-edit-select, .inline-edit-hour, .inline-edit-minute {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 2px 4px;
+    font-size: 12px;
+    background: white;
+}
+
+.inline-edit-number {
+    width: 60px;
+}
+
+.inline-edit-select {
+    cursor: pointer;
+}
+
+.inline-edit-hour, .inline-edit-minute {
+    width: 35px;
+    text-align: center;
+}
+
+.inline-edit-time {
+    width: 65px !important;  /* 增加宽度确保4位数字能完整显示 */
+    padding: 2px 6px;
+    margin: 0 4px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 12px;
+    text-align: center;
+    font-family: 'SF Mono', Monaco, monospace;
+    background: white;
+    box-sizing: border-box;
+}
+
+.inline-edit-time::placeholder {
+    color: #999;
+    font-size: 11px;
+}
+
+.time-input-wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.btn-auto-schedule {
+    padding: 2px 6px;
+    background: #4285F4;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-left: 4px;
+    transition: all 0.2s;
+}
+
+.btn-auto-schedule:hover {
+    background: #3367d6;
+    transform: scale(1.1);
+}
+
+/* 可编辑标题 */
+.task-title[contenteditable="true"] {
+    cursor: text;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.task-title[contenteditable="true"]:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.task-title[contenteditable="true"]:focus {
+    background: white;
+    outline: 2px solid #4285F4;
+}
+
+/* 已完成任务样式 */
+.task-item.completed {
+    opacity: 0.7;
+}
+
+.task-item.completed .task-title {
+    text-decoration: line-through;
+    color: #666;
+}
+
+/* 任务分组 */
+.tasks-pending, .tasks-waiting, .tasks-pool, .tasks-completed {
+    margin-bottom: 30px;
+    min-height: 100px;
+    position: relative;
+}
+
+.task-drop-zone {
+    border: 2px dashed transparent;
+    border-radius: 8px;
+    padding: 10px;
+    transition: all 0.3s;
+}
+
+.task-drop-zone.drag-over {
+    background: rgba(102, 126, 234, 0.1);
+    border-color: #667eea;
+}
+
+.tasks-container {
+    min-height: 120px;
+    padding: 10px;
+    border: 2px dashed transparent;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.tasks-container.drag-over {
+    background: rgba(76, 175, 80, 0.1);
+    border-color: #4CAF50;
+}
+
+.empty-hint {
+    text-align: center;
+    color: #999;
+    font-size: 14px;
+    padding: 20px;
+    font-style: italic;
+}
+
+.tasks-pending h3, .tasks-waiting h3, .tasks-pool h3, .tasks-completed h3 {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #eee;
+}
+
+.tasks-waiting h3 {
+    color: #fb8c00;
+}
+
+.tasks-pool h3 {
+    color: #1e88e5;
+}
+
+.tasks-completed h3 {
+    color: #34A853;
+}
+
+.empty-pool {
+    text-align: center;
+    padding: 20px;
+    color: #999;
+    font-style: italic;
+}
+
+/* 拖动手柄 */
+.drag-handle {
+    cursor: move;
+    padding: 0 8px;
+    color: #999;
+    font-size: 16px;
+    user-select: none;
+}
+
+.drag-handle:hover {
+    color: #667eea;
+}
+
+.task-item.dragging {
+    opacity: 0.5;
+    cursor: move;
+}
+
+/* 小任务项样式 */
+.mini-task.completed {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+.toast.success {
+    background: #34A853;
+}
+
+.toast.error {
+    background: #EA4335;
+}
+
+.toast.info {
+    background: #4285F4;
+}
+
+.btn-small {
+    padding: 6px 12px;
+    font-size: 14px;
+}
+
+.btn-danger {
+    background: #EA4335;
+    color: white;
+}
+
+.task-select-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+/* 时间选择器样式 */
+.time-selector {
+    position: relative;
+}
+
+.time-display {
+    display: inline-block;
+    padding: 4px 8px;
+    background: rgba(102, 126, 234, 0.1);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    color: #667eea;
+    transition: all 0.2s;
+}
+
+.time-display:hover {
+    background: rgba(102, 126, 234, 0.2);
+    transform: translateY(-1px);
+}
+
+.time-picker-popup {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    min-width: 400px;
+    max-width: 500px;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.time-picker-content {
+    padding: 20px;
+}
+
+.time-picker-header {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #333;
+    text-align: center;
+}
+
+.quick-time-buttons {
+    margin-bottom: 20px;
+}
+
+.quick-time-section {
+    margin-bottom: 15px;
+}
+
+.section-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.quick-time-section button {
+    margin: 4px;
+    padding: 6px 12px;
+    background: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.quick-time-section button:hover {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+    transform: translateY(-1px);
+}
+
+.custom-time-input {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 15px;
+    background: #f8f8f8;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.custom-time-input label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+}
+
+.custom-time-input input[type="time"] {
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.custom-time-input button {
+    padding: 6px 16px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.custom-time-input button:hover {
+    background: #5a6ed8;
+}
+
+.time-picker-actions {
+    display: flex;
+    justify-content: space-between;
+}
+
+.time-picker-actions button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-clear {
+    background: #ff6b6b;
+    color: white;
+}
+
+.btn-clear:hover {
+    background: #ff5252;
+}
+
+.btn-close {
+    background: #e0e0e0;
+    color: #333;
+}
+
+.btn-close:hover {
+    background: #d0d0d0;
+}
+
+/* 计时器相关样式 - 完全无边框设计 */
+.btn-timer, .btn-danger {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-timer {
+    background: #4CAF50;
+    color: white;
+}
+
+.btn-timer:hover {
+    background: #45a049;
+    transform: translateY(-2px);
+}
+
+/* 暂停按钮 */
+.btn-timer[style*="background: #FFA500"] {
+    background: #FFA500 !important;
+    color: white !important;
+}
+
+.btn-timer[style*="background: #FFA500"]:hover {
+    background: #FF8C00 !important;
+    transform: translateY(-2px);
+}
+
+.btn-danger {
+    background: #ff6b6b;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #ff5252;
+    transform: translateY(-2px);
+}
+
+.timer-display {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: rgba(76, 175, 80, 0.1);
+    border-radius: 8px;
+    margin-right: 10px;
+}
+
+.timer-time {
+    font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: #4CAF50;
+}
+
+.btn-stop-timer {
+    background: #FF9800;
+    color: white;
+    padding: 4px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+}
+
+.btn-stop-timer:hover {
+    background: #F57C00;
+}
+
+/* 任务高亮效果（用于提醒） */
+.task-item.highlight {
+    animation: pulse 2s ease-in-out;
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+}
+
+/* 任务闪烁提醒样式 - 30分钟前 */
+.task-flash-warning {
+    animation: flash-warning 1s ease-in-out infinite;
+    border: 2px solid #ff9800 !important;
+}
+
+@keyframes flash-warning {
+    0%, 100% { 
+        background-color: rgba(255, 152, 0, 0.1);
+        box-shadow: 0 0 10px rgba(255, 152, 0, 0.3);
+    }
+    50% { 
+        background-color: rgba(255, 152, 0, 0.3);
+        box-shadow: 0 0 20px rgba(255, 152, 0, 0.5);
+    }
+}
+
+/* 任务应该开始样式 */
+.task-should-start {
+    background-color: rgba(255, 0, 0, 0.1) !important;
+    border: 2px solid #f44336 !important;
+}
+
+/* 进行中圆环闪烁动画 - 1秒快速闪烁 */
+svg .in-progress-ring,
+svg path.in-progress-ring {
+    animation: pulse-ring-fast 1s linear infinite !important;
+    fill: none;
+    transform-origin: center center;
+}
+
+@keyframes pulse-ring-fast {
+    0%, 100% {
+        opacity: 0.4;
+        stroke-width: 8px;
+    }
+    50% {
+        opacity: 1;
+        stroke-width: 10px;
+        filter: drop-shadow(0 0 8px currentColor);
+    }
+}
+
+/* 确保SVG圆环可见 */
+.domain-card svg {
+    overflow: visible;
+}
+
+.domain-card svg circle {
+    transition: none;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+}
+
+/* 进行中的任务样式 */
+.task-item.in_progress {
+    border-left: 4px solid #4CAF50;
+    background: linear-gradient(to right, rgba(76, 175, 80, 0.05), transparent);
+}
+
+.task-item.in_progress .task-title {
+    color: #2E7D32;
+    font-weight: 600;
+}
