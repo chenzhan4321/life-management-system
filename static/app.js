@@ -1,5 +1,6 @@
 // 生活管理系统前端应用
 const API_BASE = '/api';
+let STATIC_MODE = false; // 静态模式标记
 
 // 重构：使用单一全局计时器管理所有任务，避免重复
 let globalTimerInterval = null;
@@ -880,8 +881,20 @@ function showProcessResult(data) {
 // 加载任务列表
 async function loadTasks() {
     try {
-        const response = await fetch(`${API_BASE}/tasks`);
-        const data = await response.json();
+        let response, data;
+        
+        // 尝试API调用，如果失败则加载静态JSON数据
+        try {
+            response = await fetch(`${API_BASE}/tasks`);
+            data = await response.json();
+        } catch (apiError) {
+            console.log('API不可用，加载静态数据...', apiError.message);
+            STATIC_MODE = true; // 设置静态模式
+            // 获取正确的基础路径
+            const basePath = window.location.hostname === 'localhost' ? '.' : '/life-management-system/static';
+            response = await fetch(`${basePath}/tasks-data.json`);
+            data = await response.json();
+        }
         
         // 保存任务数据到全局变量，供提醒功能使用
         window.currentTasks = data.tasks;
