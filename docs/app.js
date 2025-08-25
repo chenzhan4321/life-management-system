@@ -2624,9 +2624,9 @@ function getThemeName(theme) {
 
 // 页面加载时恢复主题设置
 function loadSavedTheme() {
-    const savedTheme = localStorage.getItem('selectedTheme') || 'default';
+    const savedTheme = localStorage.getItem('selectedTheme') || 'dark';
     // 如果保存的是modernist，切换为default
-    const validTheme = savedTheme === 'modernist' ? 'default' : savedTheme;
+    const validTheme = savedTheme === 'modernist' ? 'dark' : savedTheme;
     
     const themeLink = document.getElementById('theme-stylesheet');
     // 使用与changeTheme相同的路径逻辑
