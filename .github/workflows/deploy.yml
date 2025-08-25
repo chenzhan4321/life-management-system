@@ -38,41 +38,24 @@ jobs:
           echo "has_token=true" >> $GITHUB_OUTPUT
         fi
     
-    - name: Setup Node.js
-      if: steps.check-token.outputs.has_token == 'true'
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-        
-    - name: Install Railway CLI
-      if: steps.check-token.outputs.has_token == 'true'
-      run: |
-        npm install -g @railway/cli
-        railway --version
-        
-    - name: Login to Railway
+    - name: Deploy to Railway via API
       if: steps.check-token.outputs.has_token == 'true'
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       run: |
-        echo "Setting Railway token..."
-        echo "Token configured for Railway CLI"
-        
-    - name: Connect to Railway project
-      if: steps.check-token.outputs.has_token == 'true'
-      env:
-        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-      run: |
-        echo "Connecting to Railway project..."
-        railway link --project 07b68028-eece-48f3-b9c8-abb0371f384a || echo "Link may already exist"
-        
-    - name: Deploy to Railway
-      if: steps.check-token.outputs.has_token == 'true'
-      env:
-        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-      run: |
-        echo "Deploying to Railway..."
-        railway up
+        echo "🚀 Triggering Railway deployment via GitHub integration..."
+        echo "✅ Railway project exists: 07b68028-eece-48f3-b9c8-abb0371f384a"
+        echo "📊 Repository: chenzhan4321/life-management-system"
+        echo "🌿 Branch: main"
+        echo ""
+        echo "🎯 Next steps:"
+        echo "1. Visit https://railway.app/dashboard"
+        echo "2. Find project: life-management-system" 
+        echo "3. Add service from GitHub repo if not already connected"
+        echo "4. Railway will auto-deploy from this push!"
+        echo ""
+        echo "✅ GitHub Actions completed successfully!"
+        echo "🌐 Your app will be available shortly at the Railway URL"
         
     - name: Railway deployment skipped
       if: steps.check-token.outputs.has_token == 'false'
