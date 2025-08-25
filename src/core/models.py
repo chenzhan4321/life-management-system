@@ -14,11 +14,13 @@ Base = declarative_base()
 # 枚举类型定义
 class TaskStatus(str, Enum):
     """任务状态"""
-    PENDING = "pending"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    CANCELLED = "cancelled"
-    BLOCKED = "blocked"
+    PENDING = "pending"         # 待完成
+    WAITING = "waiting"         # 等待中
+    POOL = "pool"              # 任务池
+    IN_PROGRESS = "in_progress" # 进行中
+    COMPLETED = "completed"     # 已完成
+    CANCELLED = "cancelled"     # 已取消
+    BLOCKED = "blocked"        # 已阻塞
 
 class TimeDomain(str, Enum):
     """时间域 - 4x4小时模型"""
@@ -55,6 +57,7 @@ class Task(Base):
     updated_at = Column(DateTime, onupdate=datetime.utcnow)
     scheduled_start = Column(DateTime)   # 计划开始时间
     scheduled_end = Column(DateTime)     # 计划结束时间
+    actual_start = Column(DateTime)      # 实际开始时间
     completed_at = Column(DateTime)      # 完成时间
     
     # 关系

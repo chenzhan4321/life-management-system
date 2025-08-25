@@ -1,0 +1,115 @@
+{
+  "name": "life-management-system",
+  "productName": "生活管理系统",
+  "version": "1.0.0",
+  "description": "基于AI的智能任务管理和时间优化系统 - Palantir架构",
+  "main": "electron/main.js",
+  "homepage": "./",
+  "author": {
+    "name": "Life Management Team",
+    "email": "contact@lifemanagement.com"
+  },
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "electron": "electron .",
+    "electron-dev": "concurrently \"python run.py\" \"wait-on http://localhost:8000 && electron .\"",
+    "electron-pack": "electron-builder",
+    "preelectron-pack": "python -m pip install -r requirements.txt",
+    "build": "electron-builder --publish=never",
+    "build-mac": "electron-builder --mac",
+    "build-win": "electron-builder --win",
+    "build-linux": "electron-builder --linux",
+    "dist": "electron-builder --publish=always",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "build": {
+    "appId": "com.lifemanagement.app",
+    "productName": "生活管理系统",
+    "copyright": "Copyright © 2024 Life Management Team",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "src/**/*",
+      "run.py",
+      "requirements.txt",
+      "data/",
+      "!**/.DS_Store",
+      "!**/node_modules",
+      "!**/.git",
+      "!**/venv",
+      "!**/logs",
+      "!**/tests",
+      "!**/*.pyc"
+    ],
+    "extraResources": [
+      {
+        "from": "requirements.txt",
+        "to": "requirements.txt"
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "electron/assets/icon.icns",
+      "hardenedRuntime": true,
+      "entitlements": "electron/assets/entitlements.mac.plist",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ]
+    },
+    "win": {
+      "icon": "electron/assets/icon.ico",
+      "target": "nsis",
+      "publisherName": "Life Management Team"
+    },
+    "linux": {
+      "icon": "electron/assets/icon.png",
+      "category": "Office",
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        },
+        {
+          "target": "deb",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "electron/assets/icon.ico",
+      "uninstallerIcon": "electron/assets/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  },
+  "dependencies": {
+    "electron-updater": "^6.1.7",
+    "electron-store": "^8.1.0",
+    "electron-window-state": "^5.0.3"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1",
+    "concurrently": "^8.2.2",
+    "wait-on": "^7.2.0"
+  },
+  "keywords": [
+    "productivity",
+    "task-management",
+    "ai",
+    "time-management",
+    "palantir",
+    "electron",
+    "python",
+    "fastapi"
+  ]
+}

@@ -147,12 +147,23 @@ class DeepSeekAgent:
 
         try:
             response = await self._call_api(prompt)
-            return json.loads(response)
+            result = json.loads(response)
+            return result
         except Exception as e:
             logger.error(f"时间槽选择失败: {e}")
+            # 如果没有可用时间槽，返回默认值
+            if not available_slots:
+                return {
+                    "slot_index": 0,
+                    "start_time": None,
+                    "reasoning": "没有可用时间槽",
+                    "alternatives": []
+                }
+            
+            # 使用第一个可用时间槽
             return {
                 "slot_index": 0,
-                "start_time": available_slots[0]["start"] if available_slots else None,
+                "start_time": available_slots[0].get("start") or available_slots[0].get("start_time"),
                 "reasoning": "默认选择第一个可用时间槽",
                 "alternatives": []
             }
@@ -223,6 +234,26 @@ class DeepSeekAgent:
 任务列表：
 {chr(10).join(f"{i+1}. {task}" for i, task in enumerate(tasks))}
 
+分类原则：
+- academic: 学术研究、论文、学习、阅读、考试等
+- income: 工作、兼职、业务、挣钱相关
+- growth: 个人成长、技能学习、锻炼、爱好等
+- life: 日常生活、家务、社交、娱乐等
+
+优先级判断标准：
+5 - 紧急重要：死线今天、影响巨大、别人在等待
+4 - 重要：近期需要完成、有明确期限、工作相关
+3 - 中等：常规任务、没有紧急性、计划内任务
+2 - 低：可以推迟、非必须、个人事务
+1 - 最低：娱乐、随意、没有时间限制
+
+时间预估原则：
+- 邮件/消息回复: 5-15分钟
+- 文档整理: 30-60分钟
+- 会议/讨论: 30-90分钟
+- 研究/学习: 60-120分钟
+- 编程/写作: 90-180分钟
+
 请返回JSON格式：
 {{
     "tasks": [
@@ -232,7 +263,8 @@ class DeepSeekAgent:
             "domain": "时间域",
             "estimated_minutes": 预计分钟,
             "priority": 1-5优先级,
-            "confidence": 置信度
+            "confidence": 置信度,
+            "priority_reasoning": "优先级判断理由"
         }}
     ]
 }}"""
@@ -355,7 +387,50 @@ class DeepSeekAgent:
         import json
         
         # 根据提示词返回模拟响应
-        if "分类" in prompt or "domain" in prompt:
+        # 批量处理优先判断（必须同时包含批量和任务列表的特征）
+        if ("批量处理" in prompt or "任务列表" in prompt) and ("1." in prompt or "2." in prompt):
+            # 解析任务列表
+            tasks = []
+            lines = prompt.split('\n')
+            task_lines = []
+            in_task_list = False
+            for line in lines:
+                if "任务列表" in line:
+                    in_task_list = True
+                    continue
+                if in_task_list and line.strip() and (line.strip()[0].isdigit() or line.strip().startswith('-')):
+                    # 提取任务内容
+                    task_text = line.strip()
+                    # 移除序号
+                    import re
+                    task_text = re.sub(r'^\d+\.\s*', '', task_text)
+                    task_text = re.sub(r'^-\s*', '', task_text)
+                    if task_text:
+                        task_lines.append(task_text)
+            
+            # 为每个任务生成模拟数据
+            for i, task_text in enumerate(task_lines):
+                domain = "life"
+                if any(word in task_text.lower() for word in ["学", "study", "研究", "论文", "paper"]):
+                    domain = "academic"
+                elif any(word in task_text.lower() for word in ["工作", "work", "项目", "会议", "邮件"]):
+                    domain = "income"
+                elif any(word in task_text.lower() for word in ["健身", "运动", "锻炼"]):
+                    domain = "growth"
+                
+                tasks.append({
+                    "index": i,
+                    "title": task_text,
+                    "domain": domain,
+                    "estimated_minutes": random.randint(15, 60),
+                    "priority": random.randint(2, 4),
+                    "confidence": random.uniform(0.7, 0.9),
+                    "priority_reasoning": "基于任务内容的模拟优先级"
+                })
+            
+            return json.dumps({"tasks": tasks if tasks else [{"index": 0, "title": "默认任务", "domain": "life", "estimated_minutes": 30, "priority": 3, "confidence": 0.7}]})
+        
+        elif "分析以下任务" in prompt and "分类到合适的时间域" in prompt:
             domains = ["academic", "income", "growth", "life"]
             return json.dumps({
                 "domain": random.choice(domains),
@@ -363,7 +438,7 @@ class DeepSeekAgent:
                 "reasoning": "基于任务内容的模拟分类"
             })
         
-        elif "预测" in prompt or "时间" in prompt or "duration" in prompt:
+        elif "预测完成以下任务需要的时间" in prompt:
             return json.dumps({
                 "estimated_minutes": random.randint(15, 120),
                 "confidence": random.uniform(0.6, 0.9),
@@ -377,19 +452,6 @@ class DeepSeekAgent:
                 "reasoning": "下午时段适合此任务",
                 "alternatives": [1, 2]
             })
-        
-        elif "批量" in prompt or "tasks" in prompt:
-            tasks = []
-            for i in range(3):
-                tasks.append({
-                    "index": i,
-                    "title": f"任务 {i+1}",
-                    "domain": random.choice(["academic", "income", "growth", "life"]),
-                    "estimated_minutes": random.randint(15, 60),
-                    "priority": random.randint(2, 4),
-                    "confidence": random.uniform(0.7, 0.9)
-                })
-            return json.dumps({"tasks": tasks})
         
         else:
             return json.dumps({

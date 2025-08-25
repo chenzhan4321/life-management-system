@@ -260,15 +260,55 @@ textarea:focus {
     font-size: 10px;
 }
 
+/* 任务操作按钮 - 无边框实心设计 */
+.btn-timer, .btn-danger {
+    padding: var(--space-sm) var(--space-md);
+    border: none;
+    border-radius: 4px;
+    background: var(--primary-black);
+    color: var(--primary-white);
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+/* 开始按钮 */
+.btn-timer {
+    background: var(--income);
+    color: var(--primary-white);
+}
+
+.btn-timer:hover {
+    background: #26a65b;
+    transform: translateY(-2px);
+}
+
+/* 暂停按钮 */
+.btn-timer[style*="background: #FFA500"] {
+    background: var(--growth) !important;
+    color: var(--primary-white) !important;
+}
+
+.btn-timer[style*="background: #FFA500"]:hover {
+    background: #e6940a !important;
+    transform: translateY(-2px);
+}
+
+/* 删除按钮 */
 .btn-danger {
-    background: transparent;
-    color: var(--primary-red);
-    border-color: var(--primary-red);
+    background: var(--primary-red);
+    color: var(--primary-white);
 }
 
 .btn-danger:hover {
-    background: var(--primary-red);
-    color: var(--primary-white);
+    background: #e55a5a;
+    transform: translateY(-2px);
 }
 
 /* 处理结果 */
@@ -739,4 +779,157 @@ textarea:focus {
 
 .btn-icon {
     font-size: 14px;
+}
+
+/* 时间选择器样式 - Modernist风格 */
+.time-selector {
+    position: relative;
+}
+
+.time-display {
+    display: inline-block;
+    padding: 2px 6px;
+    background: var(--primary-black);
+    color: var(--primary-white);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.time-display:hover {
+    background: var(--primary-white);
+    color: var(--primary-black);
+    outline: 1px solid var(--primary-black);
+}
+
+.time-picker-popup {
+    background: var(--primary-white);
+    border: 2px solid var(--primary-black);
+    z-index: 1000;
+    min-width: 400px;
+    max-width: 500px;
+}
+
+.time-picker-content {
+    padding: var(--space-lg);
+}
+
+.time-picker-header {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: var(--space-lg);
+    text-align: center;
+}
+
+.quick-time-buttons {
+    margin-bottom: var(--space-lg);
+}
+
+.quick-time-section {
+    margin-bottom: var(--space-md);
+}
+
+.section-title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: var(--space-sm);
+    color: var(--gray-700);
+}
+
+.quick-time-section button {
+    margin: 2px;
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--gray-100);
+    border: 1px solid var(--primary-black);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.quick-time-section button:hover {
+    background: var(--primary-black);
+    color: var(--primary-white);
+}
+
+.custom-time-input {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+    background: var(--gray-100);
+    border: 1px solid var(--primary-black);
+    margin-bottom: var(--space-md);
+}
+
+.custom-time-input label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.custom-time-input input[type="time"] {
+    padding: var(--space-xs) var(--space-sm);
+    border: 1px solid var(--primary-black);
+    font-size: 12px;
+    font-family: 'SF Mono', monospace;
+}
+
+.custom-time-input button {
+    padding: var(--space-xs) var(--space-md);
+    background: var(--primary-black);
+    color: var(--primary-white);
+    border: none;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.custom-time-input button:hover {
+    background: var(--primary-white);
+    color: var(--primary-black);
+    border: 1px solid var(--primary-black);
+}
+
+.time-picker-actions {
+    display: flex;
+    justify-content: space-between;
+}
+
+.time-picker-actions button {
+    padding: var(--space-sm) var(--space-md);
+    border: 1px solid var(--primary-black);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.btn-clear {
+    background: var(--primary-red);
+    color: var(--primary-white);
+    border-color: var(--primary-red);
+}
+
+.btn-clear:hover {
+    background: var(--primary-white);
+    color: var(--primary-red);
+}
+
+.btn-close {
+    background: var(--gray-200);
+    color: var(--primary-black);
+}
+
+.btn-close:hover {
+    background: var(--primary-black);
+    color: var(--primary-white);
 }

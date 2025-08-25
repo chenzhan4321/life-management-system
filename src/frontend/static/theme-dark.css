@@ -335,7 +335,7 @@ textarea {
 }
 
 .progress-ring-circle {
-    transform: rotate(-90deg);
+    transform: rotate(-90deg) !important;
     transform-origin: 50% 50%;
     transition: stroke-dashoffset 0.5s ease;
 }
@@ -633,4 +633,309 @@ textarea {
     height: 18px;
     cursor: pointer;
     accent-color: var(--accent-purple);
+}/* 添加圆环动画和定位修复 */
+
+/* 确保所有圆环从12点钟位置开始 - 但不影响path */
+.domain-card svg circle.progress-ring-circle {
+    transform-origin: center !important;
+    transform: rotate(-90deg) !important;
+}
+
+/* 注释掉，因为新的渲染方式不需要这个 */
+/* #academicProgress, #incomeProgress, #growthProgress, #lifeProgress {
+    transform: rotate(-90deg) !important;
+    transform-origin: center !important;
+} */
+
+/* 进行中圆环闪烁动画 - 1秒快速闪烁 */
+svg .in-progress-ring,
+svg path.in-progress-ring {
+    animation: pulse-ring-fast 1s linear infinite !important;
+    fill: none;
+    transform-origin: center center;
+}
+
+@keyframes pulse-ring-fast {
+    0%, 100% {
+        opacity: 0.4;
+        stroke-width: 8px;
+    }
+    50% {
+        opacity: 1;
+        stroke-width: 10px;
+        filter: drop-shadow(0 0 8px currentColor);
+    }
+}
+
+/* 确保SVG圆环可见 */
+.domain-card svg {
+    overflow: visible;
+}
+
+.domain-card svg circle {
+    transition: none;
+}
+
+/* 确保path元素正确显示 */
+.domain-card svg path {
+    transform-origin: center !important;
+}
+
+/* 浅色背景圆环 */
+.planned-progress {
+    opacity: 0.2;
+    transform: rotate(-90deg);
+    transform-origin: center;
+}
+
+/* 任务闪烁提醒样式 - 30分钟前 */
+.task-flash-warning {
+    animation: flash-warning 1s ease-in-out infinite;
+    border: 2px solid #ff9800 !important;
+}
+
+@keyframes flash-warning {
+    0%, 100% { 
+        background-color: rgba(255, 152, 0, 0.1);
+        box-shadow: 0 0 10px rgba(255, 152, 0, 0.3);
+    }
+    50% { 
+        background-color: rgba(255, 152, 0, 0.3);
+        box-shadow: 0 0 20px rgba(255, 152, 0, 0.5);
+    }
+}
+
+/* 手工快速添加任务栏 - 深色主题修复 */
+.manual-input-section {
+    margin-top: 20px;
+    padding: 20px;
+    background: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+.manual-input-section h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 18px;
+    color: var(--text-primary) !important;
+}
+
+.manual-input-flex {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.quick-task-input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+}
+
+.quick-task-input::placeholder {
+    color: var(--text-secondary);
+}
+
+.quick-task-input:focus {
+    outline: none;
+    border-color: var(--accent-purple);
+    box-shadow: 0 0 0 3px rgba(127, 90, 240, 0.1);
+}
+
+.quick-task-select {
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.quick-task-select:focus {
+    outline: none;
+    border-color: var(--accent-purple);
+    box-shadow: 0 0 0 3px rgba(127, 90, 240, 0.1);
+}
+
+.quick-task-select option {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.quick-task-number {
+    width: 80px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+}
+
+.quick-task-number:focus {
+    outline: none;
+    border-color: var(--accent-purple);
+    box-shadow: 0 0 0 3px rgba(127, 90, 240, 0.1);
+}
+
+.quick-add-btn {
+    padding: 10px 20px;
+    white-space: nowrap;
+}
+
+/* 任务项按钮样式 - 完全复制btn类的样式，无边框 */
+.btn-timer, .btn-danger {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 开始/继续按钮 - 绿色实心 */
+.btn-timer {
+    background: var(--accent-green);
+    color: white;
+}
+
+.btn-timer:hover {
+    background: #26a65b;
+    transform: translateY(-2px);
+}
+
+/* 暂停按钮 - 黄色实心 */
+.btn-timer[style*="background: #FFA500"] {
+    background: var(--accent-yellow) !important;
+    color: var(--bg-primary) !important;
+}
+
+.btn-timer[style*="background: #FFA500"]:hover {
+    background: #e6940a !important;
+    transform: translateY(-2px);
+}
+
+/* 删除按钮 - 红色实心 */
+.btn-danger {
+    background: var(--accent-red);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #e55a5a;
+    transform: translateY(-2px);
+}
+
+/* 任务分组区域样式 */
+.tasks-pending, .tasks-waiting, .tasks-pool, .tasks-completed {
+    background: var(--bg-tertiary);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-color);
+}
+
+.tasks-pending h3, .tasks-waiting h3, .tasks-pool h3, .tasks-completed h3 {
+    color: var(--text-primary) !important;
+    font-size: 16px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.tasks-completed h3 {
+    color: var(--accent-green) !important;
+}
+
+.tasks-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.empty-hint {
+    text-align: center;
+    padding: 20px;
+    color: var(--text-secondary);
+    font-style: italic;
+    background: var(--bg-primary);
+    border-radius: 8px;
+    border: 2px dashed var(--border-color);
+}
+
+/* 拖拽区域样式 */
+.task-drop-zone {
+    transition: all 0.3s ease;
+}
+
+.task-drop-zone.drag-over {
+    border-color: var(--accent-purple) !important;
+    box-shadow: 0 0 20px rgba(127, 90, 240, 0.3) !important;
+    transform: scale(1.02);
+}
+
+/* 无任务提示 */
+.no-tasks {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-secondary);
+    font-size: 16px;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    border: 2px dashed var(--border-color);
+}
+
+/* 任务卡片拖拽状态 */
+.task-item.dragging {
+    opacity: 0.5;
+    transform: rotate(5deg);
+    z-index: 1000;
+}
+
+/* 域任务列表 */
+.domain-tasks {
+    margin-top: 15px;
+    max-height: 120px;
+    overflow-y: auto;
+}
+
+.mini-task {
+    background: var(--bg-primary);
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-bottom: 5px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    border-left: 2px solid var(--border-color);
+}
+
+.mini-task.completed {
+    text-decoration: line-through;
+    opacity: 0.6;
+    color: var(--accent-green);
+}
+
+.no-tasks-mini {
+    text-align: center;
+    padding: 15px;
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-style: italic;
 }

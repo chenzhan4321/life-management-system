@@ -18,6 +18,7 @@ from src.core.models import Base, Task, TaskCreate, TaskResponse, TimeSlot, Sche
 from src.ai.deepseek_agent import DeepSeekAgent, TaskProcessor
 from src.pipeline.scheduler import TimeSlotFinder, ScheduleOptimizer
 from src.utils.database import get_db, init_db
+from src.api.auth import get_current_user, ALLOWED_ORIGINS, create_access_token
 
 # 应用生命周期管理
 @asynccontextmanager
@@ -45,19 +46,32 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS 配置
+# CORS 配置（支持GitHub Pages）
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS if os.getenv("PRODUCTION") else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*", "X-API-Key", "Authorization"],
 )
 
 # 静态文件服务
 app.mount("/static", StaticFiles(directory="src/frontend/static"), name="static")
 
 # API 路由
+
+# 认证端点
+@app.post("/api/auth/token")
+async def login(api_key: str):
+    """获取访问令牌（用于GitHub Pages部署）"""
+    # 在生产环境验证API密钥
+    if os.getenv("API_KEY") and api_key != os.getenv("API_KEY"):
+        raise HTTPException(status_code=401, detail="无效的API密钥")
+    
+    # 创建访问令牌
+    access_token = create_access_token(data={"sub": "user"})
+    return {"access_token": access_token, "token_type": "bearer"}
+
 @app.get("/", response_class=HTMLResponse)
 async def root():
     """返回主页面"""
@@ -176,6 +190,7 @@ async def ai_process_tasks(
                     id=f"task_{datetime.now().timestamp()}_{task_data['index']}",
                     title=task_data["title"],
                     domain=task_data["domain"],
+                    status="pool",  # AI处理的任务默认进入任务池
                     estimated_minutes=task_data["estimated_minutes"],
                     priority=task_data["priority"],
                     ai_category=task_data["domain"],
@@ -315,6 +330,7 @@ async def batch_add_tasks(
                 id=f"task_{datetime.now().timestamp()}_{task_data['index']}",
                 title=task_data["title"],
                 domain=task_data["domain"],
+                status="pool",  # AI处理的任务默认进入任务池
                 estimated_minutes=task_data["estimated_minutes"],
                 priority=task_data["priority"],
                 ai_category=task_data["domain"],
@@ -340,6 +356,50 @@ async def batch_add_tasks(
                 }
                 for t in created_tasks
             ]
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/tasks")
+async def create_task(
+    task_data: Dict,
+    db: Session = Depends(get_db)
+):
+    """
+    创建单个任务（手工添加）
+    """
+    try:
+        # 创建任务对象
+        task = Task(
+            id=f"task_{datetime.now().timestamp()}",
+            title=task_data.get("title", ""),
+            domain=task_data.get("domain", "life"),
+            status=task_data.get("status", "pending"),
+            priority=task_data.get("priority", 3),
+            estimated_minutes=task_data.get("estimated_minutes", 30),
+            scheduled_start=datetime.fromisoformat(task_data["scheduled_start"]) if task_data.get("scheduled_start") else None,
+            scheduled_end=datetime.fromisoformat(task_data["scheduled_end"]) if task_data.get("scheduled_end") else None
+        )
+        
+        # 保存到数据库
+        db.add(task)
+        db.commit()
+        db.refresh(task)
+        
+        return {
+            "success": True,
+            "task": {
+                "id": task.id,
+                "title": task.title,
+                "domain": task.domain,
+                "status": task.status,
+                "priority": task.priority,
+                "estimated_minutes": task.estimated_minutes,
+                "scheduled_start": task.scheduled_start.isoformat() if task.scheduled_start else None,
+                "scheduled_end": task.scheduled_end.isoformat() if task.scheduled_end else None
+            },
+            "message": f"任务已添加到 {task.domain} 域"
         }
         
     except Exception as e:
@@ -380,6 +440,9 @@ async def get_tasks(
                 "priority": t.priority,
                 "estimated_minutes": t.estimated_minutes,
                 "scheduled_start": t.scheduled_start.isoformat() if t.scheduled_start else None,
+                "actual_start": t.actual_start.isoformat() if t.actual_start else None,
+                "completed_at": t.completed_at.isoformat() if t.completed_at else None,
+                "actual_minutes": t.actual_minutes,
                 "ai_confidence": t.ai_confidence
             }
             for t in tasks
@@ -423,12 +486,17 @@ async def update_task(
         raise HTTPException(status_code=404, detail="任务不存在")
     
     # 更新允许的字段
-    allowed_fields = ["title", "domain", "status", "priority", "estimated_minutes", "scheduled_start", "scheduled_end"]
+    allowed_fields = ["title", "domain", "status", "priority", "estimated_minutes", 
+                     "scheduled_start", "scheduled_end", "actual_minutes", "completed_at", 
+                     "actual_start"]
     
     for field, value in request.items():
         if field in allowed_fields:
-            if field in ["scheduled_start", "scheduled_end"] and value:
-                value = datetime.fromisoformat(value)
+            if field in ["scheduled_start", "scheduled_end", "completed_at", "actual_start"] and value:
+                # 处理 ISO 字符串，支持带 'Z' 的格式
+                if isinstance(value, str):
+                    value = value.replace('Z', '+00:00')
+                    value = datetime.fromisoformat(value)
             setattr(task, field, value)
     
     db.commit()
