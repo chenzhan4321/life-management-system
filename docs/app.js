@@ -2066,6 +2066,16 @@ async function updateTaskTimeWithDate(taskId, date) {
 // 更新任务状态
 async function toggleTaskStatus(taskId, isCompleted) {
     try {
+        // 如果任务被标记为完成，先停止计时器
+        if (isCompleted) {
+            const timerData = taskTimerData.get(taskId);
+            if (timerData && timerData.status === 'active') {
+                // 停止计时器
+                stopTaskTimer(taskId);
+                showToast('计时器已停止', 'info');
+            }
+        }
+        
         const response = await fetch(`${API_BASE}/tasks/${taskId}`, {
             method: 'PATCH',
             headers: {
@@ -2077,7 +2087,14 @@ async function toggleTaskStatus(taskId, isCompleted) {
         });
         
         if (response.ok) {
-            showToast(isCompleted ? '任务已完成' : '任务已恢复', 'success');
+            showToast(isCompleted ? '✅ 任务已完成' : '任务已恢复', 'success');
+            
+            // 如果任务完成，清除计时器数据
+            if (isCompleted) {
+                taskTimerData.delete(taskId);
+                clearTaskReminder(taskId);
+            }
+            
             await loadTasks();
             await updateDashboard();
         } else {
