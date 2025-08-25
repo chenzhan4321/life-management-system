@@ -1,6 +1,28 @@
 // 生活管理系统前端应用
-const API_BASE = '/api';
-let STATIC_MODE = false; // 静态模式标记
+// 动态检测API基础URL
+const API_BASE = (() => {
+    const hostname = window.location.hostname;
+    
+    // Railway部署检测
+    if (hostname.includes('railway.app') || hostname.includes('up.railway.app')) {
+        return '/api'; // Railway上的相对路径
+    }
+    
+    // GitHub Pages检测
+    if (hostname.includes('github.io')) {
+        return null; // GitHub Pages使用静态数据，无API
+    }
+    
+    // 本地开发
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        return '/api';
+    }
+    
+    // 默认
+    return '/api';
+})();
+
+let STATIC_MODE = !API_BASE; // 如果没有API则为静态模式
 
 // 重构：使用单一全局计时器管理所有任务，避免重复
 let globalTimerInterval = null;
@@ -883,17 +905,32 @@ async function loadTasks() {
     try {
         let response, data;
         
-        // 尝试API调用，如果失败则加载静态JSON数据
-        try {
-            response = await fetch(`${API_BASE}/tasks`);
-            data = await response.json();
-        } catch (apiError) {
-            console.log('API不可用，加载静态数据...', apiError.message);
-            STATIC_MODE = true; // 设置静态模式
-            // 获取正确的基础路径
+        // 如果已经是静态模式（GitHub Pages），直接加载静态数据
+        if (STATIC_MODE) {
+            console.log('静态模式：加载静态数据...');
             const basePath = window.location.hostname === 'localhost' ? '.' : '/life-management-system/static';
             response = await fetch(`${basePath}/tasks-data.json`);
             data = await response.json();
+        } else {
+            // 尝试API调用
+            try {
+                console.log(`正在连接API: ${API_BASE}/tasks`);
+                response = await fetch(`${API_BASE}/tasks`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                data = await response.json();
+                console.log('API连接成功，已加载任务数据');
+            } catch (apiError) {
+                console.error('API连接失败:', apiError.message);
+                console.log('切换到静态模式');
+                STATIC_MODE = true;
+                const basePath = window.location.hostname === 'localhost' ? '.' : '/life-management-system/static';
+                response = await fetch(`${basePath}/tasks-data.json`);
+                data = await response.json();
+            }
         }
         
         // 保存任务数据到全局变量，供提醒功能使用
@@ -2574,6 +2611,24 @@ function loadSavedTheme() {
 
 document.addEventListener('DOMContentLoaded', () => {
     loadSavedTheme();
+    
+    // 显示运行模式
+    console.log('🌐 当前运行环境:', {
+        hostname: window.location.hostname,
+        API_BASE,
+        STATIC_MODE
+    });
+    
+    // 如果是Railway模式，显示实时功能提示
+    if (!STATIC_MODE && window.location.hostname.includes('railway.app')) {
+        setTimeout(() => {
+            showToast('🚀 完整功能版本 - 支持AI处理和数据编辑', 'success');
+        }, 2000);
+    } else if (STATIC_MODE) {
+        setTimeout(() => {
+            showToast('📖 展示版本 - 显示历史数据（只读）', 'info');
+        }, 2000);
+    }
     
     // 加载暂停的计时器
     loadPausedTimersFromLocalStorage();
