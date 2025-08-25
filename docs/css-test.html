@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>CSS加载测试</title>
+    <link rel="stylesheet" href="./theme-default.css">
+    <style>
+        .test-indicator { 
+            background: red; 
+            color: white; 
+            padding: 10px; 
+            margin: 10px 0; 
+        }
+        .css-loaded { 
+            background: green !important; 
+        }
+    </style>
+</head>
+<body>
+    <div class="test-indicator">🔴 如果看到红色，说明CSS没有加载</div>
+    <div class="test-indicator css-loaded">🟢 如果看到绿色，说明内嵌CSS工作</div>
+    
+    <div class="container">
+        <h1>CSS测试页面</h1>
+        <div class="domain-card academic">
+            <div class="domain-header">
+                <h3>📚 如果这个卡片有样式，说明theme-default.css加载成功</h3>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log('🔍 CSS文件加载检测');
+        
+        // 检查CSS文件是否加载
+        const links = document.querySelectorAll('link[rel="stylesheet"]');
+        links.forEach((link, index) => {
+            link.onload = () => console.log(`✅ CSS文件 ${index + 1} 加载成功:`, link.href);
+            link.onerror = () => console.log(`❌ CSS文件 ${index + 1} 加载失败:`, link.href);
+        });
+        
+        // 检查计算样式
+        setTimeout(() => {
+            const container = document.querySelector('.container');
+            if (container) {
+                const styles = getComputedStyle(container);
+                console.log('📊 Container样式:', {
+                    maxWidth: styles.maxWidth,
+                    margin: styles.margin,
+                    padding: styles.padding
+                });
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
