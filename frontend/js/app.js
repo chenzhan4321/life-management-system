@@ -1,6 +1,6 @@
-// 生活管理系统前端应用 v3.5
-// 更新日期: 2025-08-26
-// 特性: CORS修复 + 稳定连接 + 浅色主题重制 + AI智能处理
+// 生活管理系统前端应用 v3.7
+// 更新日期: 2025-08-27
+// 特性: 完整API支持 + 主题系统重构 + 项目清理优化
 // 动态检测API基础URL
 const API_BASE = (() => {
     const hostname = window.location.hostname;
@@ -165,7 +165,7 @@ function startTaskTimer(taskId, taskTitle) {
     }
     
     // 异步更新后端状态，然后刷新任务列表
-    fetch(`${API_BASE}/tasks/${taskId}`, {
+    fetch(`${API_BASE}/api/tasks/${taskId}`, {
         method: 'PATCH',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({status: 'in_progress'})
@@ -755,7 +755,7 @@ async function addQuickTask() {
             taskData.scheduled_end = toLocalISOString(new Date(scheduledTime.getTime() + estimatedMinutes * 60000));
         }
         
-        const response = await fetch(`${API_BASE}/tasks`, {
+        const response = await fetch(`${API_BASE}/api/tasks`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -804,7 +804,7 @@ async function aiProcessTasks() {
     resultDiv.classList.add('hidden');
     
     try {
-        const response = await fetch(`${API_BASE}/tasks/ai-process`, {
+        const response = await fetch(`${API_BASE}/api/tasks/ai-process`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -930,8 +930,8 @@ async function loadTasks() {
         } else {
             // 尝试API调用
             try {
-                console.log(`正在连接API: ${API_BASE}/tasks`);
-                response = await fetch(`${API_BASE}/tasks`);
+                console.log(`正在连接API: ${API_BASE}/api/tasks`);
+                response = await fetch(`${API_BASE}/api/tasks`);
                 
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -1252,7 +1252,7 @@ async function updateDashboard() {
         
         // 只在非静态模式下尝试API调用
         if (!STATIC_MODE && API_BASE) {
-            const response = await fetch(`${API_BASE}/analytics/daily`);
+            const response = await fetch(`${API_BASE}/api/analytics/daily`);
             data = await response.json();
             
             // 更新统计数据
@@ -1327,7 +1327,7 @@ async function optimizeSchedule() {
     showToast('正在优化日程...', 'info');
     
     try {
-        const response = await fetch(`${API_BASE}/tasks`);
+        const response = await fetch(`${API_BASE}/api/tasks`);
         const tasksData = await response.json();
         
         if (tasksData.tasks.length === 0) {
@@ -1416,7 +1416,7 @@ async function deleteTask(taskId) {
     }
     
     try {
-        const response = await fetch(`${API_BASE}/tasks/${taskId}`, {
+        const response = await fetch(`${API_BASE}/api/tasks/${taskId}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'
@@ -1533,7 +1533,7 @@ async function deleteSelectedTasks() {
     
     for (const taskId of selectedTasks) {
         try {
-            const response = await fetch(`${API_BASE}/tasks/${taskId}`, {
+            const response = await fetch(`${API_BASE}/api/tasks/${taskId}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json'
@@ -1599,7 +1599,7 @@ async function deleteSelectedPoolTasks() {
     try {
         // 批量删除任务
         for (const taskId of selectedTasks) {
-            const response = await fetch(`${API_BASE}/tasks/${taskId}`, {
+            const response = await fetch(`${API_BASE}/api/tasks/${taskId}`, {
                 method: 'DELETE'
             });
             
@@ -1639,7 +1639,7 @@ async function moveSelectedToToday() {
     for (const taskId of selectedTasks) {
         try {
             // 获取任务信息
-            const tasksResponse = await fetch(`${API_BASE}/tasks`);
+            const tasksResponse = await fetch(`${API_BASE}/api/tasks`);
             const tasksData = await tasksResponse.json();
             const task = tasksData.tasks.find(t => t.id === taskId);
             
@@ -1653,7 +1653,7 @@ async function moveSelectedToToday() {
                     updateData.scheduled_end = new Date(scheduledTime.getTime() + (task.estimated_minutes || 30) * 60000).toISOString();
                 }
                 
-                const response = await fetch(`${API_BASE}/tasks/${taskId}`, {
+                const response = await fetch(`${API_BASE}/api/tasks/${taskId}`, {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json'
@@ -1811,7 +1811,7 @@ async function updateTaskTitle(taskId, newTitle) {
     if (!newTitle.trim()) return;
     
     try {
-        const response = await fetch(`${API_BASE}/tasks/${taskId}`, {
+        const response = await fetch(`${API_BASE}/api/tasks/${taskId}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json'
@@ -1842,7 +1842,7 @@ async function updateTaskField(taskId, field, value) {
         const updateData = {};
         updateData[field] = field === 'estimated_minutes' || field === 'priority' ? parseInt(value) : value;
         
-        const response = await fetch(`${API_BASE}/tasks/${taskId}`, {
+        const response = await fetch(`${API_BASE}/api/tasks/${taskId}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json'
@@ -2000,7 +2000,7 @@ async function updateTaskTime(taskId, timeStr) {
         scheduledDate.setHours(hour, minute, 0, 0);
         
         // 获取任务信息
-        const tasksResp = await fetch(`${API_BASE}/tasks`);
+        const tasksResp = await fetch(`${API_BASE}/api/tasks`);
         if (!tasksResp.ok) {
             throw new Error('获取任务信息失败');
         }
@@ -2025,7 +2025,7 @@ async function updateTaskTime(taskId, timeStr) {
         };
         
         // 发送更新请求
-        const updateResp = await fetch(`${API_BASE}/tasks/${taskId}`, {
+        const updateResp = await fetch(`${API_BASE}/api/tasks/${taskId}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json'
@@ -2059,7 +2059,7 @@ async function updateTaskTime(taskId, timeStr) {
 // 清空任务时间
 async function clearTaskTime(taskId) {
     try {
-        const response = await fetch(`${API_BASE}/tasks/${taskId}`, {
+        const response = await fetch(`${API_BASE}/api/tasks/${taskId}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json'
@@ -2084,7 +2084,7 @@ async function clearTaskTime(taskId) {
 async function autoScheduleTaskTime(task) {
     try {
         // 获取所有今日任务以找到空闲时段
-        const response = await fetch(`${API_BASE}/tasks`);
+        const response = await fetch(`${API_BASE}/api/tasks`);
         const data = await response.json();
         const todayTasks = data.tasks.filter(t => 
             t.status === 'pending' && 
@@ -2193,7 +2193,7 @@ async function autoScheduleTaskTime(task) {
 async function autoScheduleTask(taskId) {
     try {
         // 获取任务信息
-        const response = await fetch(`${API_BASE}/tasks`);
+        const response = await fetch(`${API_BASE}/api/tasks`);
         const data = await response.json();
         const task = data.tasks.find(t => t.id === taskId);
         
@@ -2388,7 +2388,7 @@ function setCustomTime(taskId) {
 // 清除任务时间
 async function clearTaskTime(taskId) {
     try {
-        const response = await fetch(`${API_BASE}/tasks/${taskId}`, {
+        const response = await fetch(`${API_BASE}/api/tasks/${taskId}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json'
@@ -2453,7 +2453,7 @@ async function toggleTaskStatus(taskId, isCompleted) {
             updateData.completed_at = null;
         }
         
-        const response = await fetch(`${API_BASE}/tasks/${taskId}`, {
+        const response = await fetch(`${API_BASE}/api/tasks/${taskId}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json'
@@ -2489,7 +2489,7 @@ async function toggleTaskStatus(taskId, isCompleted) {
 // 修改任务域
 async function changeTaskDomain(taskId, newDomain) {
     try {
-        const response = await fetch(`${API_BASE}/tasks/${taskId}`, {
+        const response = await fetch(`${API_BASE}/api/tasks/${taskId}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json'
@@ -2561,7 +2561,7 @@ async function handleDrop(event) {
     if (draggedTaskId && newStatus) {
         try {
             // 获取任务信息
-            const tasksResponse = await fetch(`${API_BASE}/tasks`);
+            const tasksResponse = await fetch(`${API_BASE}/api/tasks`);
             const tasksData = await tasksResponse.json();
             const task = tasksData.tasks.find(t => t.id === draggedTaskId);
             
@@ -2576,7 +2576,7 @@ async function handleDrop(event) {
                 }
             }
             
-            const response = await fetch(`${API_BASE}/tasks/${draggedTaskId}`, {
+            const response = await fetch(`${API_BASE}/api/tasks/${draggedTaskId}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json'
@@ -2663,9 +2663,9 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSavedTheme();
     
     // 版本信息和运行模式
-    console.log('🚀 生活管理系统 v3.6 已启动');
+    console.log('🚀 生活管理系统 v3.7 已启动');
     console.log('📅 版本日期: 2025-08-27');
-    console.log('✨ 新功能: 前后端分离架构 + GitHub Pages + Vercel 部署支持');
+    console.log('✨ 新功能: 完整API支持 + 主题系统重构 + 性能优化');
     console.log('🌐 当前运行环境:', {
         hostname: window.location.hostname,
         API_BASE,
@@ -2675,7 +2675,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 显示版本信息提示
     if (window.location.hostname.includes('github.io')) {
         setTimeout(() => {
-            showToast('🚀 生活管理系统 v3.5 - 稳定连接版本', 'success');
+            showToast('🚀 生活管理系统 v3.7 - 优化重构版', 'success');
         }, 2000);
     } else if (window.location.hostname.includes('railway.app')) {
         setTimeout(() => {

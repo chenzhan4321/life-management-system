@@ -1,5 +1,27 @@
 # Claude 更新日志
 
+## v3.7 (2025-08-27)
+### 修复的问题
+- ✅ 修复了PUT/PATCH请求405错误，现在可以正确更新任务时间
+- ✅ 修复了analytics端点数据结构问题，仪表板现在正常显示统计
+- ✅ 添加了完整的REST API支持（GET/POST/PUT/PATCH/DELETE）
+
+### 主题系统重构
+- 🎨 删除了旧的浅色主题文件（theme-default.css, theme-modernist.css）
+- 🎨 基于深色主题的设计系统创建了新的浅色主题（theme-light.css）
+- 🎨 实现了主题切换功能，支持本地存储记忆
+
+### 项目清理优化
+- 🗑️ 删除了大量重复和不必要的文件
+- 🗑️ 清理了根目录下的旧版本文件
+- 🗑️ 移除了未使用的目录（static/, src/, docs/, backup/, electron/等）
+- 📁 保留了清晰的项目结构：frontend/ 和 backend/
+
+### 技术改进
+- 使用 Pydantic 的 model_dump() 替代废弃的 dict() 方法
+- 改进了后端错误处理和响应格式
+- 优化了前端API调用路径
+
 ## v3.6 - 2025-08-27
 
 ### 🏗️ 项目重构 - 前后端分离架构

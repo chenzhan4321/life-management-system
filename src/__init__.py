@@ -1,1 +1,0 @@
-# Life Management System Package

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>生活管理系统 v3.6 - 前后端分离架构</title>
+    <title>生活管理系统 v3.7 - 前后端分离架构</title>
     <!-- 版本标识 -->
     <meta name="version" content="v3.6-refactored">
     <meta name="description" content="最新版本：前后端完全分离，GitHub Pages + Vercel 部署支持">
@@ -31,9 +31,9 @@
     <meta name="mobile-web-app-status-bar-style" content="default">
     
     <!-- 主题样式 -->
-    <link id="theme-stylesheet" rel="stylesheet" href="./css/theme-dark.css?v=3.6">
+    <link id="theme-stylesheet" rel="stylesheet" href="./css/theme-light.css?v=3.7">
     <!-- 移动端响应式样式 -->
-    <link rel="stylesheet" href="./css/mobile.css?v=3.6">
+    <link rel="stylesheet" href="./css/mobile.css?v=3.7">
 </head>
 <body>
     <!-- 主题切换器 -->
@@ -249,8 +249,24 @@
     </div>
 
     <!-- 加载API配置 -->
-    <script src="./js/config.js?v=3.6"></script>
-    <script src="./js/app.js?v=3.6"></script>
+    <script src="./js/config.js?v=3.7"></script>
+    <script src="./js/app.js?v=3.7"></script>
+    
+    <!-- 主题切换功能 -->
+    <script>
+        function changeTheme(theme) {
+            const themeStylesheet = document.getElementById('theme-stylesheet');
+            themeStylesheet.href = `./css/theme-${theme}.css?v=3.7`;
+            localStorage.setItem('selectedTheme', theme);
+        }
+        
+        // 加载保存的主题
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('selectedTheme') || 'light';
+            document.getElementById('theme-select').value = savedTheme;
+            changeTheme(savedTheme);
+        });
+    </script>
     
     <!-- PWA支持脚本 -->
     <script>
