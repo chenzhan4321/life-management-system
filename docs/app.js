@@ -60,8 +60,8 @@ function showNotification(title, body, taskId = null) {
     if (Notification.permission === "granted") {
         const notification = new Notification(title, {
             body: body,
-            icon: '/favicon.ico',
-            badge: '/favicon.ico',
+            icon: './favicon.ico',
+            badge: './favicon.ico',
             tag: taskId || 'task-reminder',
             requireInteraction: true
         });

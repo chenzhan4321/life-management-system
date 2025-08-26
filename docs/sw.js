@@ -12,8 +12,8 @@ const STATIC_FILES = [
   '/static/theme-modernist.css',
   '/static/manifest.json',
   // 图标文件（如果存在）
-  '/static/icon-192x192.png',
-  '/static/icon-512x512.png',
+  './static/icon-192x192.png',
+  './static/icon-512x512.png',
 ];
 
 // API 端点（用于网络优先策略）
@@ -199,20 +199,20 @@ self.addEventListener('push', event => {
   const data = event.data.json();
   const options = {
     body: data.body || '您有新的任务提醒',
-    icon: '/static/icon-192x192.png',
-    badge: '/static/icon-72x72.png',
+    icon: './static/icon-192x192.png',
+    badge: './static/icon-72x72.png',
     tag: 'task-reminder',
     renotify: true,
     actions: [
       {
         action: 'view',
         title: '查看任务',
-        icon: '/static/icon-192x192.png'
+        icon: './static/icon-192x192.png'
       },
       {
         action: 'dismiss',
         title: '忽略',
-        icon: '/static/icon-192x192.png'
+        icon: './static/icon-192x192.png'
       }
     ]
   };

@@ -1,0 +1,97 @@
+# 排除大型文件和目录以减小镜像大小
+
+# Python虚拟环境
+venv/
+env/
+.env/
+
+# 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+life_management.db
+data/
+
+# 日志文件
+logs/
+*.log
+
+# Node.js (如果有)
+node_modules/
+
+# 开发和测试文件
+tests/
+test_*
+*_test.py
+debug.html
+test.html
+test-cache.html
+
+# 文档和说明文件
+*.md
+docs/
+README*
+DEPLOY*
+MANUAL*
+QUICK*
+IMPROVEMENTS*
+GITHUB*
+RAILWAY*
+VERIFY*
+*.html
+
+# 静态文件目录（如果不需要）
+static/
+electron/
+css-test.html
+emergency-index.html
+index-backup.html
+local.html
+
+# Electron相关
+electron/
+
+# 脚本文件
+scripts/
+*.sh
+*.command
+start_server.command
+setup*
+
+# 配置文件（只保留必要的）
+vercel.json
+render.yaml
+*.json.backup
+
+# Python缓存
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+.coverage
+.pytest_cache/
+
+# IDE文件
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 临时文件
+tmp/
+temp/
+*.tmp
+*.backup
+
+# AI模型文件（如果有大型模型文件）
+*.model
+*.bin
+models/
+
+# 其他大文件
+*.zip
+*.tar.gz
+*.exe

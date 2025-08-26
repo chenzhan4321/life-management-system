@@ -685,6 +685,116 @@ textarea:focus {
     letter-spacing: 1px;
 }
 
+/* 手动快速添加任务栏 - 浅色主题 */
+.manual-input-section {
+    margin-top: var(--space-lg);
+    padding: var(--space-xl);
+    background: var(--primary-white);
+    border: 2px solid var(--primary-black);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.manual-input-section h3 {
+    margin-top: 0;
+    margin-bottom: var(--space-md);
+    font-size: 16px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--primary-black);
+}
+
+.manual-input-flex {
+    display: flex;
+    gap: var(--space-md);
+    align-items: center;
+}
+
+.quick-task-input {
+    flex: 1;
+    padding: var(--space-md);
+    border: 2px solid var(--primary-black);
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: 'SF Mono', 'Monaco', monospace;
+    background: var(--gray-100);
+    color: var(--primary-black);
+    transition: all 0.2s;
+}
+
+.quick-task-input::placeholder {
+    color: var(--gray-600);
+    font-style: italic;
+}
+
+.quick-task-input:focus {
+    outline: none;
+    background: var(--primary-white);
+    border-color: var(--primary-blue);
+}
+
+.quick-task-select {
+    padding: var(--space-md);
+    border: 2px solid var(--primary-black);
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: 'SF Mono', 'Monaco', monospace;
+    background: var(--primary-white);
+    color: var(--primary-black);
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 100px;
+}
+
+.quick-task-select:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+}
+
+.quick-task-select option {
+    background: var(--primary-white);
+    color: var(--primary-black);
+}
+
+.quick-task-number {
+    width: 80px;
+    padding: var(--space-md);
+    border: 2px solid var(--primary-black);
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: 'SF Mono', 'Monaco', monospace;
+    background: var(--gray-100);
+    color: var(--primary-black);
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.quick-task-number:focus {
+    outline: none;
+    background: var(--primary-white);
+    border-color: var(--primary-blue);
+}
+
+.quick-add-btn {
+    padding: var(--space-md) var(--space-lg);
+    border: 2px solid var(--primary-black);
+    background: var(--primary-black);
+    color: var(--primary-white);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 4px;
+}
+
+.quick-add-btn:hover {
+    background: var(--primary-white);
+    color: var(--primary-black);
+}
+
 /* 小任务项 */
 .mini-task {
     font-size: 11px;
