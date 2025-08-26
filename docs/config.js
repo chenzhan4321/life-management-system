@@ -6,10 +6,10 @@ const API_CONFIG = {
     // 或者：https://your-api.vercel.app
     // 或者：https://api.yourdomain.com
     
-    // 临时使用本地服务器（仅用于本地测试）
+    // Railway后端API地址
     baseURL: window.location.hostname === 'localhost' 
         ? 'http://localhost:8000' 
-        : 'https://life-api.vercel.app',  // 请替换为你的实际API地址
+        : 'https://api-production-70ed.up.railway.app',  // Railway后端API
     
     // API密钥（如果设置了的话）
     apiKey: '',  // 在生产环境中设置你的API密钥
