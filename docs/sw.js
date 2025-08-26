@@ -1,17 +1,17 @@
-// Service Worker for 生活管理系统 PWA
-const CACHE_NAME = 'life-management-v1.0.0';
-const STATIC_CACHE = 'life-management-static-v1.0.0';
-const DYNAMIC_CACHE = 'life-management-dynamic-v1.0.0';
+// Service Worker for 生活管理系统 PWA v3.5
+const CACHE_NAME = 'life-management-v3.5.0';
+const STATIC_CACHE = 'life-management-static-v3.5.0';
+const DYNAMIC_CACHE = 'life-management-dynamic-v3.5.0';
 
-// 需要缓存的静态文件
+// 需要缓存的静态文件 - 修复路径
 const STATIC_FILES = [
-  '/',
-  '/static/app.js',
-  '/static/theme-default.css',
-  '/static/theme-dark.css',
-  '/static/theme-modernist.css',
-  '/static/manifest.json',
-  // 图标文件（如果存在）
+  './',
+  './index.html',
+  './app.js',
+  './styles.css',
+  './theme-dark.css',
+  './manifest.json',
+  // 图标文件
   './static/icon-192x192.png',
   './static/icon-512x512.png',
 ];
@@ -30,7 +30,12 @@ self.addEventListener('install', event => {
     caches.open(STATIC_CACHE)
       .then(cache => {
         console.log('Service Worker: 预缓存静态文件');
-        return cache.addAll(STATIC_FILES);
+        // 尝试缓存，失败不阻断安装
+        return Promise.allSettled(
+          STATIC_FILES.map(url => cache.add(url).catch(err => {
+            console.warn(`Failed to cache ${url}:`, err);
+          }))
+        );
       })
       .then(() => {
         console.log('Service Worker: 安装完成');
