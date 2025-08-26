@@ -27,8 +27,8 @@ jobs:
       - name: 📦 Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # 只上传前端静态文件
-          path: '.'
+          # 上传 docs 目录
+          path: './docs'
 
   deploy:
     environment:

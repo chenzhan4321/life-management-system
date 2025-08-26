@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生活管理系统 v4.0 - AI智能任务管理</title>
+    
+    <!-- SEO优化 -->
+    <meta name="description" content="智能生活管理系统，AI驱动的任务规划和时间管理工具">
+    <meta name="keywords" content="任务管理,时间管理,AI,生产力,生活规划">
+    <meta name="author" content="Life Management System">
+    
+    <!-- PWA支持 -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="生活管理">
+    <meta name="application-name" content="生活管理系统">
+    <meta name="msapplication-TileColor" content="#2563eb">
+    
+    <!-- 图标支持 -->
+    <link rel="apple-touch-icon" sizes="180x180" href="./static/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./static/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./static/icons/favicon-16x16.png">
+    <link rel="shortcut icon" href="./static/icons/favicon.ico">
+    
+    <!-- 主题样式 - 默认浅色主题 -->
+    <link id="theme-stylesheet" rel="stylesheet" href="./styles/theme-default.css?v=4.0">
+    <!-- 移动端响应式样式 -->
+    <link rel="stylesheet" href="./styles/mobile.css?v=4.0">
+    
+    <!-- 预加载关键资源 -->
+    <link rel="preload" href="./js/app.js?v=4.0" as="script">
+    <link rel="preload" href="./js/modules/api.js?v=4.0" as="script">
+</head>
+<body>
+    <!-- 主题切换器 -->
+    <div class="theme-switcher">
+        <label for="theme-select" class="theme-label">主题:</label>
+        <select id="theme-select" class="theme-select" onchange="themeManager.changeTheme(this.value)">
+            <option value="default">浅色模式</option>
+            <option value="dark">深色模式</option>
+        </select>
+    </div>
+    
+    <div class="container">
+        <!-- 顶部导航 -->
+        <nav class="navbar">
+            <div class="nav-brand">
+                <span class="logo">🎯</span>
+                <h1 class="app-title">
+                    生活管理系统 
+                    <span class="version-badge">v4.0 🚀重构版</span>
+                </h1>
+            </div>
+            <div class="nav-stats">
+                <div class="stat-item">
+                    <span class="stat-label">今日完成</span>
+                    <span class="stat-value" id="todayCompleted">0/0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">生产力分数</span>
+                    <span class="stat-value" id="productivityScore">0%</span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- AI 智能任务输入 -->
+        <section class="ai-input-section">
+            <div class="section-header">
+                <h2 class="section-title">✨ AI 智能任务处理</h2>
+                <p class="section-description">
+                    智能解析任务内容，自动分类时间域，预测所需时间
+                </p>
+            </div>
+            
+            <div class="ai-input-container">
+                <textarea 
+                    id="aiTaskInput" 
+                    class="ai-input-textarea"
+                    placeholder="输入任务，AI会自动分析分类...
+
+示例：
+• 回复Tony的重要邮件
+• 研究机器学习新算法
+• 整理出差报销单据
+• 30分钟法语对话练习
+• 去超市买菜做晚饭
+
+支持多行输入或分号分隔多个任务"
+                    rows="8"
+                    maxlength="2000"></textarea>
+                
+                <div class="input-actions">
+                    <button id="aiProcessBtn" class="btn btn-primary btn-ai" onclick="taskProcessor.aiProcessTasks()">
+                        <span class="btn-icon">🤖</span>
+                        <span class="btn-text">AI 智能处理</span>
+                    </button>
+                    <button class="btn btn-secondary" onclick="taskProcessor.clearInput()">
+                        <span class="btn-icon">🗑️</span>
+                        <span class="btn-text">清空</span>
+                    </button>
+                </div>
+                
+                <!-- AI处理状态 -->
+                <div id="aiProcessing" class="ai-processing hidden">
+                    <div class="loading-spinner"></div>
+                    <span class="loading-text">AI 正在智能分析任务...</span>
+                </div>
+                
+                <!-- 处理结果 -->
+                <div id="processResult" class="process-result hidden"></div>
+            </div>
+        </section>
+        
+        <!-- 快速添加任务 -->
+        <section class="quick-add-section">
+            <div class="section-header">
+                <h3 class="section-title">⚡ 快速添加任务</h3>
+            </div>
+            
+            <div class="quick-add-container">
+                <div class="input-group">
+                    <input 
+                        type="text" 
+                        id="quickTaskInput" 
+                        placeholder="输入任务标题（按Enter添加）" 
+                        class="quick-task-input"
+                        maxlength="200"
+                        onkeypress="if(event.key==='Enter'){taskProcessor.addQuickTask();}">
+                    
+                    <select id="quickTaskDomain" class="quick-task-select">
+                        <option value="academic">🎓 学术</option>
+                        <option value="income">💰 收入</option>
+                        <option value="growth">🌱 成长</option>
+                        <option value="life">🏠 生活</option>
+                    </select>
+                    
+                    <input 
+                        type="number" 
+                        id="quickTaskMinutes" 
+                        placeholder="分钟" 
+                        value="30" 
+                        min="5" 
+                        max="480"
+                        class="quick-task-number">
+                    
+                    <button class="btn btn-primary quick-add-btn" onclick="taskProcessor.addQuickTask()">
+                        <span class="btn-icon">➕</span>
+                        <span class="btn-text">添加</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 时间域仪表板 -->
+        <section class="domain-dashboard">
+            <div class="section-header">
+                <h2 class="section-title">📊 今日时间域分配</h2>
+                <p class="section-description">智能平衡各个生活领域的时间投入</p>
+            </div>
+            
+            <div class="domains-grid" id="domainsGrid">
+                <!-- 动态生成域卡片 -->
+            </div>
+        </section>
+
+        <!-- 任务列表 -->
+        <section class="tasks-section">
+            <div class="section-header">
+                <h2 class="section-title">📋 任务管理中心</h2>
+                <div class="action-buttons">
+                    <button class="btn btn-outline" onclick="taskManager.toggleSelectAll()" title="全选/取消全选">
+                        <span class="btn-icon">☑️</span>
+                        <span class="btn-text">全选</span>
+                    </button>
+                    <button id="deleteSelectedBtn" class="btn btn-danger hidden" onclick="taskManager.deleteSelectedTasks()" title="删除选中任务">
+                        <span class="btn-icon">🗑️</span>
+                        <span class="btn-text">删除选中</span>
+                    </button>
+                    <button class="btn btn-secondary" onclick="taskManager.optimizeSchedule()" title="AI优化任务排序">
+                        <span class="btn-icon">🔄</span>
+                        <span class="btn-text">优化排序</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 任务列表容器 -->
+            <div id="tasksList" class="tasks-list">
+                <!-- 动态生成任务列表 -->
+            </div>
+            
+            <!-- 空状态提示 -->
+            <div id="emptyState" class="empty-state hidden">
+                <div class="empty-icon">📝</div>
+                <h3>还没有任务</h3>
+                <p>使用上面的AI智能处理或快速添加来创建第一个任务吧！</p>
+            </div>
+        </section>
+
+        <!-- AI洞察面板 -->
+        <section class="insights-panel">
+            <div class="section-header">
+                <h3 class="section-title">🧠 AI 洞察与建议</h3>
+            </div>
+            <div id="aiInsights" class="insights-content">
+                <div class="insight-item loading">
+                    <div class="insight-icon">💡</div>
+                    <div class="insight-text">AI正在分析您的工作模式...</div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- 通知Toast -->
+    <div id="toast" class="toast"></div>
+
+    <!-- PWA安装提示 -->
+    <div id="pwaInstallBanner" class="pwa-install-banner hidden">
+        <div class="pwa-banner-content">
+            <div class="pwa-banner-text">
+                <strong>🚀 安装应用</strong>
+                <span>获得更好的使用体验</span>
+            </div>
+            <div class="pwa-banner-actions">
+                <button id="pwaInstallBtn" class="btn btn-primary btn-small">安装</button>
+                <button id="pwaDismissBtn" class="btn btn-ghost btn-small">稍后</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载指示器 -->
+    <div id="globalLoader" class="global-loader hidden">
+        <div class="loader-content">
+            <div class="loader-spinner"></div>
+            <div class="loader-text">加载中...</div>
+        </div>
+    </div>
+
+    <!-- JavaScript模块 -->
+    <script src="./js/config.js?v=4.0"></script>
+    <script type="module" src="./js/app.js?v=4.0"></script>
+    
+    <!-- PWA支持脚本 -->
+    <script>
+        // Service Worker 注册
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js?v=4.0')
+                    .then(registration => {
+                        console.log('✅ ServiceWorker 注册成功:', registration.scope);
+                        
+                        // 检查更新
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    showUpdateNotification();
+                                }
+                            });
+                        });
+                    })
+                    .catch(error => {
+                        console.log('❌ ServiceWorker 注册失败:', error);
+                    });
+            });
+        }
+
+        // 显示更新通知
+        function showUpdateNotification() {
+            const toast = document.getElementById('toast');
+            toast.innerHTML = `
+                <div class="toast-update">
+                    <span>🔄 应用有新版本</span>
+                    <button onclick="location.reload()" class="btn btn-primary btn-small">立即更新</button>
+                </div>
+            `;
+            toast.classList.add('show');
+        }
+
+        // 网络状态监听
+        window.addEventListener('online', () => {
+            if (window.notificationManager) {
+                window.notificationManager.showToast('🌐 网络已连接', 'success');
+            }
+        });
+
+        window.addEventListener('offline', () => {
+            if (window.notificationManager) {
+                window.notificationManager.showToast('📱 离线模式 - 功能受限', 'warning');
+            }
+        });
+
+        // 检测PWA模式
+        if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) {
+            document.body.classList.add('pwa-mode');
+            console.log('🚀 PWA模式运行中');
+        }
+
+        // 性能监控
+        window.addEventListener('load', () => {
+            if ('performance' in window) {
+                const perfData = performance.timing;
+                const loadTime = perfData.loadEventEnd - perfData.navigationStart;
+                console.log(`⚡ 页面加载耗时: ${loadTime}ms`);
+            }
+        });
+    </script>
+</body>
+</html>

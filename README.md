@@ -97,3 +97,7 @@ MIT License
 ---
 
 **生活管理系统 v4.0** - 让生活更有序，让时间更高效 🚀
+
+**让数据驱动你的生活，让 AI 优化你的时间！**
+
+*Built with ❤️ for macOS users who value efficiency and intelligence in life management.*
