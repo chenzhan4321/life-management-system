@@ -23,15 +23,12 @@ jobs:
         
       - name: 🔧 Setup Pages
         uses: actions/configure-pages@v4
-        with:
-          # 禁用静态站点生成器
-          static_site_generator: ""
         
       - name: 📦 Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # 上传整个仓库作为静态站点
-          path: '.'
+          # 上传 docs 目录
+          path: './docs'
 
   deploy:
     environment:
