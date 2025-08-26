@@ -601,7 +601,7 @@ const app = new LifeManagementApp();
 window.app = app;
 
 // 开发模式下的调试工具
-if (process?.env?.NODE_ENV === 'development' || window.location.hostname === 'localhost') {
+if (window.location.hostname === 'localhost') {
     window.debug = {
         app,
         modules: app.modules,
