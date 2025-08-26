@@ -1,62 +1,42 @@
-name: Deploy to Railway
+name: Deploy Frontend to GitHub Pages
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-    
-    - name: Run tests
-      run: |
-        python -m pytest tests/ || echo "No tests yet"
-    
-    - name: Check Railway token
-      id: check-token
-      env:
-        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-      run: |
-        if [ -z "$RAILWAY_TOKEN" ]; then
-          echo "has_token=false" >> $GITHUB_OUTPUT
-        else
-          echo "has_token=true" >> $GITHUB_OUTPUT
-        fi
-    
-    - name: Deploy to Railway via API
-      if: steps.check-token.outputs.has_token == 'true'
-      env:
-        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-      run: |
-        echo "🚀 Triggering Railway deployment via GitHub integration..."
-        echo "✅ Railway project exists: 07b68028-eece-48f3-b9c8-abb0371f384a"
-        echo "📊 Repository: chenzhan4321/life-management-system"
-        echo "🌿 Branch: main"
-        echo ""
-        echo "🎯 Next steps:"
-        echo "1. Visit https://railway.app/dashboard"
-        echo "2. Find project: life-management-system" 
-        echo "3. Add service from GitHub repo if not already connected"
-        echo "4. Railway will auto-deploy from this push!"
-        echo ""
-        echo "✅ GitHub Actions completed successfully!"
-        echo "🌐 Your app will be available shortly at the Railway URL"
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
         
-    - name: Railway deployment skipped
-      if: steps.check-token.outputs.has_token == 'false'
-      run: echo "Railway token not configured, skipping deployment"
+      - name: 🔧 Setup Pages
+        uses: actions/configure-pages@v4
+        
+      - name: 📦 Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # 只上传前端静态文件
+          path: '.'
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: 🚀 Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

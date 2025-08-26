@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "api/health.py": {
+      "runtime": "@vercel/python"
+    },
+    "api/tasks.py": {
+      "runtime": "@vercel/python"
+    },
+    "api/index.py": {
+      "runtime": "@vercel/python"
+    }
+  }
+}
