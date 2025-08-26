@@ -8,18 +8,19 @@ const API_BASE = (() => {
         return '/api'; // Railway上的相对路径
     }
     
-    // GitHub Pages检测
+    // GitHub Pages检测 - 现在使用外部API
     if (hostname.includes('github.io')) {
-        return null; // GitHub Pages使用静态数据，无API
+        // 使用配置文件中的Railway API
+        return window.API_CONFIG ? window.API_CONFIG.baseURL : 'https://api-production-70ed.up.railway.app';
     }
     
     // 本地开发
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-        return '/api';
+        return window.API_CONFIG ? window.API_CONFIG.baseURL : 'http://localhost:8000';
     }
     
-    // 默认
-    return '/api';
+    // 默认 - 使用配置的API
+    return window.API_CONFIG ? window.API_CONFIG.baseURL : 'https://api-production-70ed.up.railway.app';
 })();
 
 let STATIC_MODE = !API_BASE; // 如果没有API则为静态模式
