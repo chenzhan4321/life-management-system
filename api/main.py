@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
 import uuid
+import os
 
 # 创建FastAPI应用
 app = FastAPI(
