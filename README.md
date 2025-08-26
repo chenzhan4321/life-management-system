@@ -360,4 +360,4 @@ graph TB
 
 **让数据驱动你的生活，让 AI 优化你的时间！**
 
-*Built with ❤️ for macOS users who value efficiency and intelligence in life management.*
+*Built with ❤️ for macOS users who value efficiency and intelligence in life management.* 
