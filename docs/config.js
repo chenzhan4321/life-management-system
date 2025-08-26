@@ -6,10 +6,11 @@ const API_CONFIG = {
     // 或者：https://your-api.vercel.app
     // 或者：https://api.yourdomain.com
     
-    // Railway后端API地址
+    // 后端API地址配置
+    // 注：如果Railway服务不可用，请使用本地API或其他云服务
     baseURL: window.location.hostname === 'localhost' 
         ? 'http://localhost:8000' 
-        : 'https://api-production-70ed.up.railway.app',  // Railway后端API
+        : 'https://api-production-70ed.up.railway.app',  // Railway后端API（需要配置）
     
     // API密钥（如果设置了的话）
     apiKey: '',  // 在生产环境中设置你的API密钥
