@@ -1,6 +1,6 @@
-// 生活管理系统前端应用 v3.0
+// 生活管理系统前端应用 v3.1
 // 更新日期: 2025-08-26
-// 特性: Railway API连接 + 优化浅色UI + AI智能处理
+// 特性: 现代化UI设计 + Railway API连接 + AI智能处理
 // 动态检测API基础URL
 const API_BASE = (() => {
     const hostname = window.location.hostname;
@@ -2673,9 +2673,9 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSavedTheme();
     
     // 版本信息和运行模式
-    console.log('🎯 生活管理系统 v3.0 已启动');
+    console.log('🎯 生活管理系统 v3.1 已启动');
     console.log('📅 版本日期: 2025-08-26');
-    console.log('✨ 新功能: Railway API + 优化浅色UI + AI智能处理');
+    console.log('✨ 新功能: 现代化UI设计 + Railway API + AI智能处理');
     console.log('🌐 当前运行环境:', {
         hostname: window.location.hostname,
         API_BASE,
