@@ -685,71 +685,69 @@ textarea:focus {
     letter-spacing: 1px;
 }
 
-/* 手动快速添加任务栏 - 浅色主题 */
+/* 手动快速添加任务栏 - 浅色主题 (仿深色主题样式) */
 .manual-input-section {
-    margin-top: var(--space-lg);
-    padding: var(--space-xl);
+    margin-top: 20px;
+    padding: 20px;
     background: var(--primary-white);
-    border: 2px solid var(--primary-black);
-    border-radius: 8px;
+    border: 1px solid var(--gray-300);
+    border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .manual-input-section h3 {
     margin-top: 0;
-    margin-bottom: var(--space-md);
-    font-size: 16px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    margin-bottom: 15px;
+    font-size: 18px;
+    font-weight: 600;
     color: var(--primary-black);
 }
 
 .manual-input-flex {
     display: flex;
-    gap: var(--space-md);
+    gap: 10px;
     align-items: center;
 }
 
 .quick-task-input {
     flex: 1;
-    padding: var(--space-md);
-    border: 2px solid var(--primary-black);
-    border-radius: 4px;
-    font-size: 13px;
-    font-family: 'SF Mono', 'Monaco', monospace;
+    padding: 10px;
+    border: 1px solid var(--gray-300);
+    border-radius: 8px;
+    font-size: 14px;
     background: var(--gray-100);
     color: var(--primary-black);
-    transition: all 0.2s;
+    transition: all 0.3s ease;
 }
 
 .quick-task-input::placeholder {
-    color: var(--gray-600);
-    font-style: italic;
+    color: var(--gray-500);
 }
 
 .quick-task-input:focus {
     outline: none;
-    background: var(--primary-white);
     border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(30, 136, 229, 0.1);
+    background: var(--primary-white);
 }
 
 .quick-task-select {
-    padding: var(--space-md);
-    border: 2px solid var(--primary-black);
-    border-radius: 4px;
-    font-size: 13px;
-    font-family: 'SF Mono', 'Monaco', monospace;
-    background: var(--primary-white);
+    padding: 10px;
+    border: 1px solid var(--gray-300);
+    border-radius: 8px;
+    font-size: 14px;
+    background: var(--gray-100);
     color: var(--primary-black);
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s ease;
     min-width: 100px;
 }
 
 .quick-task-select:focus {
     outline: none;
     border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(30, 136, 229, 0.1);
+    background: var(--primary-white);
 }
 
 .quick-task-select option {
@@ -759,40 +757,40 @@ textarea:focus {
 
 .quick-task-number {
     width: 80px;
-    padding: var(--space-md);
-    border: 2px solid var(--primary-black);
-    border-radius: 4px;
-    font-size: 13px;
-    font-family: 'SF Mono', 'Monaco', monospace;
+    padding: 10px;
+    border: 1px solid var(--gray-300);
+    border-radius: 8px;
+    font-size: 14px;
     background: var(--gray-100);
     color: var(--primary-black);
     text-align: center;
-    transition: all 0.2s;
+    transition: all 0.3s ease;
 }
 
 .quick-task-number:focus {
     outline: none;
-    background: var(--primary-white);
     border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(30, 136, 229, 0.1);
+    background: var(--primary-white);
 }
 
 .quick-add-btn {
-    padding: var(--space-md) var(--space-lg);
-    border: 2px solid var(--primary-black);
-    background: var(--primary-black);
+    padding: 10px 20px;
+    border: none;
+    background: var(--primary-blue);
     color: var(--primary-white);
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s;
-    border-radius: 4px;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    white-space: nowrap;
 }
 
 .quick-add-btn:hover {
-    background: var(--primary-white);
-    color: var(--primary-black);
+    background: var(--primary-black);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* 小任务项 */
