@@ -2663,9 +2663,9 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSavedTheme();
     
     // 版本信息和运行模式
-    console.log('🚀 生活管理系统 v3.5 已启动');
-    console.log('📅 版本日期: 2025-08-26');
-    console.log('✨ 新功能: CORS修复 + 稳定连接 + 浅色主题重制 + AI智能处理');
+    console.log('🚀 生活管理系统 v3.6 已启动');
+    console.log('📅 版本日期: 2025-08-27');
+    console.log('✨ 新功能: 前后端分离架构 + GitHub Pages + Vercel 部署支持');
     console.log('🌐 当前运行环境:', {
         hostname: window.location.hostname,
         API_BASE,
