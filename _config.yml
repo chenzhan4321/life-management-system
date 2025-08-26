@@ -1,0 +1,25 @@
+# GitHub Pages 配置
+# 禁用 Jekyll 处理
+plugins: []
+theme: null
+source: .
+destination: ./_site
+exclude:
+  - node_modules
+  - venv
+  - __pycache__
+  - .git
+  - .github
+  - *.py
+  - *.pyc
+  - *.md
+  - Dockerfile
+  - requirements*.txt
+  - package*.json
+  - railway.json
+  - vercel.json
+  - render.yaml
+  - pyproject.toml
+  - setup*.sh
+  - test*.py
+  - deploy*.py
