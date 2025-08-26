@@ -1,10 +1,10 @@
 // API 配置文件
 const API_CONFIG = {
-    // Vercel 后端 API 地址
-    // 注意：这是你的实际 Vercel 部署地址
-    API_BASE_URL: 'https://lifemanagement.vercel.app',
+    // Railway 后端 API 地址
+    // 这是你部署在Railway的后端服务
+    API_BASE_URL: 'https://api-production-70ed.up.railway.app',
     
-    // 备用配置
+    // 本地开发环境
     LOCAL_API_URL: 'http://localhost:8000',
     
     // 自动检测环境
@@ -16,7 +16,7 @@ const API_CONFIG = {
             return this.LOCAL_API_URL;
         }
         
-        // 生产环境（GitHub Pages 或其他）
+        // 生产环境（GitHub Pages）
         return this.API_BASE_URL;
     }
 };
