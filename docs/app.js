@@ -2613,16 +2613,17 @@ function getStatusName(status) {
 // 主题切换功能
 function changeTheme(themeName) {
     const themeLink = document.getElementById('theme-stylesheet');
-    // 修复路径问题 - 适配不同部署环境
-    let basePath;
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        basePath = '/static'; // 本地开发服务器
-    } else if (window.location.hostname.includes('github.io')) {
-        basePath = '/life-management-system'; // GitHub Pages
+    
+    // v3.4: 支持浅色主题和深色主题
+    if (themeName === 'light') {
+        themeLink.href = './styles.css';
+    } else if (themeName === 'dark') {
+        themeLink.href = './theme-dark.css';
     } else {
-        basePath = '/static'; // Railway 或其他服务器
+        // 默认使用浅色主题
+        themeLink.href = './styles.css';
+        themeName = 'light';
     }
-    themeLink.href = `${basePath}/theme-${themeName}.css`;
     
     // 保存到 localStorage
     localStorage.setItem('selectedTheme', themeName);
@@ -2641,30 +2642,19 @@ function getThemeName(theme) {
 
 // 页面加载时恢复主题设置
 function loadSavedTheme() {
-    const savedTheme = localStorage.getItem('selectedTheme') || 'dark';
-    // 如果保存的是modernist，切换为default
-    const validTheme = savedTheme === 'modernist' ? 'dark' : savedTheme;
-    
-    const themeLink = document.getElementById('theme-stylesheet');
-    // 使用与changeTheme相同的路径逻辑
-    let basePath;
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        basePath = '/static'; // 本地开发服务器
-    } else if (window.location.hostname.includes('github.io')) {
-        basePath = '/life-management-system'; // GitHub Pages
-    } else {
-        basePath = '/static'; // Railway 或其他服务器
+    const savedTheme = localStorage.getItem('selectedTheme') || 'light';
+    // v3.4: 移除旧的 modernist/default 主题，统一到浅色/深色
+    let validTheme = savedTheme;
+    if (savedTheme === 'modernist' || savedTheme === 'default') {
+        validTheme = 'light';
     }
-    themeLink.href = `${basePath}/theme-${validTheme}.css`;
+    
+    // 使用 changeTheme 函数来设置主题
+    changeTheme(validTheme);
     
     const themeSelect = document.getElementById('theme-select');
     if (themeSelect) {
         themeSelect.value = validTheme;
-    }
-    
-    // 更新localStorage
-    if (savedTheme === 'modernist') {
-        localStorage.setItem('selectedTheme', 'default');
     }
 }
 
@@ -2673,9 +2663,9 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSavedTheme();
     
     // 版本信息和运行模式
-    console.log('🎯 生活管理系统 v3.3 已启动');
+    console.log('🤖 生活管理系统 v3.4 已启动');
     console.log('📅 版本日期: 2025-08-26');
-    console.log('✨ 新功能: 完美输入框尺寸优化 + Railway API + AI智能处理');
+    console.log('✨ 新功能: DeepSeek AI智能分析 + 浅色主题重制 + Railway API');
     console.log('🌐 当前运行环境:', {
         hostname: window.location.hostname,
         API_BASE,
@@ -2685,11 +2675,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // 显示版本信息提示
     if (window.location.hostname.includes('github.io')) {
         setTimeout(() => {
-            showToast('🎯 生活管理系统 v3.3 - Railway API 已连接', 'success');
+            showToast('🤖 生活管理系统 v3.4 - DeepSeek AI版本', 'success');
         }, 2000);
     } else if (window.location.hostname.includes('railway.app')) {
         setTimeout(() => {
-            showToast('🚀 Railway 完整功能版本', 'success');
+            showToast('🚀 Railway DeepSeek AI 版本', 'success');
         }, 2000);
     }
     
