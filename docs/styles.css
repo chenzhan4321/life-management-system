@@ -707,13 +707,15 @@ textarea:focus {
 
 .quick-task-input {
     flex: 1;
-    padding: 10px;
+    padding: 14px 12px;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
     font-size: 14px;
     background: #ffffff;
     color: #1f2937;
     transition: all 0.3s ease;
+    min-height: 46px;
+    line-height: 1.4;
 }
 
 .quick-task-input::placeholder {
@@ -727,7 +729,7 @@ textarea:focus {
 }
 
 .quick-task-select {
-    padding: 10px;
+    padding: 14px 12px;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
     font-size: 14px;
@@ -735,6 +737,8 @@ textarea:focus {
     color: #1f2937;
     cursor: pointer;
     transition: all 0.3s ease;
+    min-height: 46px;
+    line-height: 1.4;
 }
 
 .quick-task-select:focus {
@@ -750,13 +754,16 @@ textarea:focus {
 
 .quick-task-number {
     width: 80px;
-    padding: 10px;
+    padding: 14px 12px;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
     font-size: 14px;
     background: #ffffff;
     color: #1f2937;
     transition: all 0.3s ease;
+    min-height: 46px;
+    line-height: 1.4;
+    text-align: center;
 }
 
 .quick-task-number:focus {
