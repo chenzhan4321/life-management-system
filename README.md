@@ -1,363 +1,99 @@
-# macOS 生活管理系统
+# 生活管理系统 v4.0 🎯
 
-> 基于 Palantir 数据架构原理的现代生活管理平台
+智能生活管理系统，AI驱动的任务规划和时间管理工具。
 
-🚀 **部署状态**: Railway token已配置 - 启动完整后端部署...
+## ✨ 特性
 
-[![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com)
-[![macOS](https://img.shields.io/badge/macOS-11.0+-black.svg)](https://www.apple.com/macos/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+- 🤖 **AI智能任务处理** - 自动分类和时间预估
+- 📊 **时间域管理** - 学术、收入、成长、生活四大领域
+- 🎨 **双主题模式** - 浅色/深色主题切换
+- 📱 **响应式设计** - 完美适配桌面和移动端
+- 💾 **离线支持** - PWA技术，支持离线使用
+- ⚡ **现代架构** - 模块化JavaScript，清晰的代码结构
 
-## 🎯 项目愿景
+## 🚀 部署
 
-将 Palantir 企业级数据架构的强大理念应用于个人生活管理，创建一个智能、高效、本地优先的生活管理系统。通过深度集成 macOS 生态系统，实现生活数据的自动收集、智能分析和优化建议。
+### 前端部署 (GitHub Pages)
 
-## ✨ 核心特性
+前端自动部署到 GitHub Pages。每次推送到 `main` 分支时会自动触发部署。
 
-### 🏗️ Palantir 架构层次
+### 后端部署 (Vercel)
 
-- **本体层 (Ontology)**: 生活对象的结构化建模
-  - 任务对象 (Tasks) - 优先级、时长、领域分类
-  - 时间块对象 (Time Blocks) - 四域时间管理理论
-  - 项目对象 (Projects) - 目标导向的任务组织
-  - 人员对象 (Persons) - 关系网络管理
+后端使用 FastAPI 构建，部署到 Vercel。
 
-- **管道层 (Pipeline)**: 智能数据处理流水线
-  - 自动数据收集 (macOS 日历、提醒事项)
-  - 智能数据分类和标准化
-  - 实时处理和状态更新
-  - AI 驱动的洞察生成
+1. 确保 `api/index.py` 和 `requirements.txt` 存在
+2. 将项目连接到 Vercel
+3. 使用 `vercel.json` 配置文件进行部署
 
-- **平台层 (Foundry)**: 统一数据管理平台
-  - 版本控制的数据存储
-  - 工作流编排和自动化
-  - 安全的数据访问控制
-  - 历史数据分析和趋势识别
+## 🛠️ 技术栈
 
-- **部署层 (Apollo)**: 配置和运维管理
-  - 智能配置管理
-  - 自动更新机制
-  - 系统健康监控
-  - 性能优化
+- **前端**: Vanilla JavaScript (ES6+), CSS3, PWA
+- **后端**: FastAPI, Python 3.9+
+- **部署**: GitHub Pages + Vercel
+- **样式**: CSS Variables, 响应式设计
 
-### 🍎 macOS 深度集成
-
-- **原生应用同步**: 无缝集成日历、提醒事项、通讯录
-- **系统通知**: 智能提醒和进度通知
-- **Shortcuts 支持**: 快速操作和自动化工作流
-- **菜单栏集成**: 便捷的系统托盘访问
-- **Apple Silicon 优化**: 针对 M1/M2 芯片优化
-
-### 🤖 AI 智能功能
-
-- **任务优先级算法**: 基于历史数据的智能排序
-- **日程优化建议**: AI 驱动的时间安排优化
-- **生产力模式识别**: 个人效率模式分析
-- **智能分类**: 自动任务和时间块分类
-- **预测性洞察**: 基于趋势的建议和提醒
-
-### 📊 生活域管理
-
-基于四域时间管理理论:
-
-- **学术域 (Academic)**: 学习、研究、知识获取
-- **收入域 (Income)**: 工作、项目、收入相关活动  
-- **成长域 (Growth)**: 健康、技能提升、个人发展
-- **生活域 (Life)**: 家庭、社交、日常维护
-
-## 🚀 快速开始
-
-### 系统要求
-
-- macOS 11.0 (Big Sur) 或更高版本
-- Python 3.9 或更高版本
-- 4GB RAM (推荐 8GB)
-- 2GB 可用存储空间
-
-### 一键安装
-
-```bash
-# 下载并运行自动安装脚本
-curl -fsSL https://raw.githubusercontent.com/life-management/macos-app/main/scripts/macos_setup.sh | bash
-```
-
-### 手动安装
-
-```bash
-# 1. 克隆项目
-git clone https://github.com/life-management/macos-app.git
-cd macos-app
-
-# 2. 创建虚拟环境
-python3 -m venv venv
-source venv/bin/activate
-
-# 3. 安装依赖
-pip install -r requirements.txt
-
-# 4. 初始化数据库
-python -c "
-from backend.database import engine
-from backend.ontology.models import Base
-Base.metadata.create_all(bind=engine)
-"
-
-# 5. 启动应用
-python -m uvicorn backend.main:app --reload
-```
-
-### 启动系统
-
-```bash
-# 使用启动脚本
-./start.sh
-
-# 或直接运行
-python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
-```
-
-访问 [http://127.0.0.1:8000](http://127.0.0.1:8000) 开始使用！
-
-## 📱 界面预览
-
-### 仪表板
-- 四域统计概览
-- 今日时间安排
-- 紧急任务列表
-- 最近活动动态
-
-### 任务管理
-- 智能任务分类
-- AI 优先级排序
-- 批量操作功能
-- 进度跟踪视图
-
-### 时间管理
-- 可视化时间块
-- 日程冲突检测
-- 生产力评分
-- 历史趋势分析
-
-### 数据分析
-- 生产力仪表板
-- 域分布统计
-- 效率趋势图表
-- 个性化洞察
-
-## 🛠️ 开发指南
-
-### 项目结构
+## 📁 项目结构
 
 ```
 life_management/
-├── backend/                 # Python 后端
-│   ├── ontology/           # 数据模型层
-│   ├── pipeline/           # 数据管道层
-│   ├── foundry/            # 平台服务层
-│   ├── apollo/             # 配置管理层
-│   ├── api/                # API 路由
-│   ├── ai/                 # AI 功能模块
-│   └── integrations/       # macOS 集成
-├── frontend/               # Web 前端
-│   ├── static/             # 静态资源
-│   └── templates/          # HTML 模板
-├── data/                   # 数据存储
-├── scripts/                # 工具脚本
-└── docs/                   # 项目文档
+├── api/                    # 后端API
+│   └── index.py           # FastAPI应用
+├── js/                    # 前端JavaScript
+│   ├── app.js            # 主应用文件
+│   └── modules/          # 功能模块
+│       ├── api.js
+│       ├── theme-manager.js
+│       ├── notification-manager.js
+│       ├── task-processor.js
+│       └── task-manager.js
+├── styles/               # 样式文件
+│   ├── theme-default.css # 浅色主题
+│   ├── theme-dark.css   # 深色主题
+│   └── mobile.css       # 移动端适配
+├── static/              # 静态资源
+├── .github/workflows/   # GitHub Actions
+├── index.html          # 主页面
+├── manifest.json       # PWA配置
+├── sw.js              # Service Worker
+├── vercel.json        # Vercel配置
+└── requirements.txt   # Python依赖
 ```
 
-### 开发环境设置
+## 🎯 使用方法
 
-```bash
-# 安装开发依赖
-pip install -r requirements.txt
-pip install -e .[dev]
+1. **AI任务处理**: 在顶部输入框中描述任务，AI会自动分类和预估时间
+2. **快速添加**: 使用快速添加区域手动创建任务
+3. **时间域管理**: 查看四大生活领域的时间分配
+4. **主题切换**: 点击右上角切换浅色/深色主题
 
-# 设置 pre-commit 钩子
-pre-commit install
+## 🔧 开发
 
-# 运行测试
-pytest
+### 本地开发
 
-# 代码格式化
-black backend/ frontend/
-isort backend/ frontend/
+1. 克隆项目
+2. 启动后端: `uvicorn api.index:app --reload`
+3. 使用 HTTP 服务器打开前端文件
 
-# 类型检查
-mypy backend/
-```
+### 代码结构
 
-### API 文档
+- 采用模块化架构，每个功能模块独立
+- 使用 ES6+ 语法和现代 JavaScript 特性
+- CSS 使用变量系统，支持主题切换
+- 响应式设计，适配所有设备尺寸
 
-启动应用后访问：
-- **Swagger UI**: [http://127.0.0.1:8000/api/docs](http://127.0.0.1:8000/api/docs)
-- **ReDoc**: [http://127.0.0.1:8000/api/redoc](http://127.0.0.1:8000/api/redoc)
+## 📝 更新日志
 
-## 🔧 配置说明
-
-### 环境变量
-
-复制 `.env.example` 到 `.env` 并根据需要修改配置：
-
-```bash
-cp .env.example .env
-```
-
-关键配置项：
-
-```env
-# 基础配置
-DEBUG=true
-DATABASE_URL=sqlite:///./data/database/life_management.db
-
-# macOS 集成
-MACOS_INTEGRATION_ENABLED=true
-CALENDAR_SYNC_ENABLED=false
-REMINDERS_SYNC_ENABLED=false
-
-# AI 功能
-AI_FEATURES_ENABLED=true
-AI_PRIORITY_WEIGHT=0.7
-
-# 时间管理
-DEFAULT_TIME_BLOCK_DURATION=240
-WORK_START_HOUR=9
-WORK_END_HOUR=17
-```
-
-### 数据库配置
-
-系统默认使用 SQLite，支持以下配置：
-
-- **开发环境**: `sqlite:///./data/database/life_management.db`
-- **生产环境**: 可配置为 PostgreSQL 或其他数据库
-- **测试环境**: 内存数据库 `sqlite:///:memory:`
-
-## 📊 架构详解
-
-### 数据模型
-
-```python
-# 任务对象
-class Task:
-    title: str
-    domain: TaskDomain  # academic, income, growth, life
-    priority: TaskPriority  # 1-5 级别
-    estimated_duration: int  # 预估时长(分钟)
-    ai_priority_score: float  # AI 计算的优先级
-
-# 时间块对象
-class TimeBlock:
-    start_time: datetime
-    end_time: datetime
-    domain: TaskDomain
-    block_type: TimeBlockType  # focused, routine, buffer, break
-    productivity_rating: int  # 生产力评分
-```
-
-### API 设计
-
-RESTful API 设计，支持完整的 CRUD 操作：
-
-```python
-# 任务管理 API
-GET    /api/v1/tasks              # 获取任务列表
-POST   /api/v1/tasks              # 创建新任务
-GET    /api/v1/tasks/{id}         # 获取任务详情
-PUT    /api/v1/tasks/{id}         # 更新任务
-DELETE /api/v1/tasks/{id}         # 删除任务
-POST   /api/v1/tasks/{id}/complete # 完成任务
-
-# 时间块管理 API
-GET    /api/v1/timeblocks         # 获取时间块列表
-POST   /api/v1/timeblocks         # 创建时间块
-GET    /api/v1/timeblocks/optimize # 优化日程安排
-
-# 分析 API
-GET    /api/v1/analytics/summary  # 获取统计摘要
-GET    /api/v1/analytics/productivity # 生产力分析
-```
-
-### 数据流架构
-
-```mermaid
-graph TB
-    A[macOS Apps] --> B[Data Collectors]
-    B --> C[Data Transformers]
-    C --> D[Data Processors]
-    D --> E[SQLite Database]
-    E --> F[API Layer]
-    F --> G[Web Interface]
-    
-    H[AI Engine] --> D
-    I[Notification System] --> A
-    D --> I
-```
-
-## 🤝 贡献指南
-
-我们欢迎社区贡献！请查看 [CONTRIBUTING.md](CONTRIBUTING.md) 了解详细指南。
-
-### 贡献类型
-
-- 🐛 错误修复
-- ✨ 新功能开发
-- 📝 文档改进
-- 🧪 测试用例
-- 🎨 UI/UX 改进
-- 🚀 性能优化
-
-### 开发流程
-
-1. Fork 项目并创建特性分支
-2. 进行开发并添加测试
-3. 确保代码通过所有检查
-4. 提交 Pull Request
-
-## 📈 路线图
-
-### v1.0 (当前版本)
-- [x] 基础架构搭建
-- [x] macOS 日历/提醒集成
-- [x] 四域时间管理
-- [x] 基础 AI 功能
-- [x] Web 界面
-
-### v1.1 (计划中)
-- [ ] 移动端 Companion App
-- [ ] 高级 AI 洞察
-- [ ] 团队协作功能
-- [ ] 数据导出/导入
-- [ ] 第三方应用集成
-
-### v1.2 (未来版本)
-- [ ] 语音控制集成
-- [ ] Apple Watch 支持
-- [ ] 云端同步选项
-- [ ] 插件系统
-- [ ] 多语言支持
+### v4.0.0 (2025-01-XX)
+- 🔥 **完全重构** - 全新的模块化架构
+- 🛡️ **安全加强** - 移除硬编码API密钥
+- 🎨 **UI现代化** - 简化为双主题模式
+- ⚡ **性能优化** - 改善加载速度和响应性
+- 📱 **移动端优化** - 更好的触摸体验
 
 ## 📄 许可证
 
-本项目采用 [MIT 许可证](LICENSE)。
-
-## 🙏 致谢
-
-- **Palantir Technologies** - 架构理念启发
-- **Apple** - macOS 生态系统支持
-- **FastAPI** - 现代 Web 框架
-- **开源社区** - 优秀的工具和库
-
-## 📞 联系我们
-
-- **GitHub Issues**: [问题反馈](https://github.com/life-management/macos-app/issues)
-- **讨论区**: [GitHub Discussions](https://github.com/life-management/macos-app/discussions)
-- **邮箱**: team@lifemanagement.local
-- **官网**: https://lifemanagement.local
+MIT License
 
 ---
 
-**让数据驱动你的生活，让 AI 优化你的时间！**
-
-*Built with ❤️ for macOS users who value efficiency and intelligence in life management.*
+**生活管理系统 v4.0** - 让生活更有序，让时间更高效 🚀

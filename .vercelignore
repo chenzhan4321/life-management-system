@@ -1,0 +1,9 @@
+index.html
+js/
+styles/
+sw.js
+manifest.json
+*.md
+backup/
+.github/
+api/

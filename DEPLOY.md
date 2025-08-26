@@ -1,228 +1,165 @@
-# 🚀 部署指南
+# 🚀 生活管理系统 v4.0 部署指南
 
-本项目可以部署到多个云平台，让所有人都能使用你的生活管理系统。
+## 📋 部署架构
 
-## 部署选项对比
-
-| 平台 | 免费额度 | 优点 | 缺点 |
-|------|---------|------|------|
-| **Railway** | $5/月 | 支持SQLite，一键部署 | 免费额度有限 |
-| **Render** | 免费 | 完全免费 | 15分钟无访问会休眠 |
-| **Vercel** | 免费 | 性能好，全球CDN | 需要改用PostgreSQL |
-| **Heroku** | 免费(有限) | 稳定 | 免费版限制多 |
-
-## 方法 1: Railway 部署（推荐）
-
-Railway 支持 SQLite，最接近本地开发环境。
-
-### 步骤：
-
-1. **注册 Railway 账号**
-   - 访问 [railway.app](https://railway.app/)
-   - 使用 GitHub 账号登录
-
-2. **创建新项目**
-   ```bash
-   # 安装 Railway CLI
-   npm install -g @railway/cli
-   
-   # 登录
-   railway login
-   
-   # 在项目目录初始化
-   railway init
-   
-   # 部署
-   railway up
-   ```
-
-3. **或通过 GitHub 部署**
-   - 将代码推送到 GitHub
-   - 在 Railway 点击 "New Project"
-   - 选择 "Deploy from GitHub repo"
-   - 选择你的仓库
-   - Railway 会自动检测并部署
-
-4. **配置环境变量**
-   - 在 Railway 项目设置中添加：
-   ```
-   DEEPSEEK_API_KEY=你的API密钥
-   ```
-
-## 方法 2: Render 部署（完全免费）
-
-### 步骤：
-
-1. **准备 GitHub 仓库**
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit"
-   git remote add origin https://github.com/你的用户名/life-management.git
-   git push -u origin main
-   ```
-
-2. **注册 Render**
-   - 访问 [render.com](https://render.com/)
-   - 使用 GitHub 登录
-
-3. **创建 Web Service**
-   - 点击 "New +"
-   - 选择 "Web Service"
-   - 连接你的 GitHub 仓库
-   - 选择仓库和分支
-
-4. **配置服务**
-   - Name: `life-management`
-   - Runtime: `Python 3`
-   - Build Command: `pip install -r requirements.txt`
-   - Start Command: `cd src && uvicorn api.main:app --host 0.0.0.0 --port $PORT`
-
-5. **添加环境变量**
-   - 添加 `DEEPSEEK_API_KEY`
-
-## 方法 3: Vercel 部署
-
-### 步骤：
-
-1. **安装 Vercel CLI**
-   ```bash
-   npm install -g vercel
-   ```
-
-2. **部署**
-   ```bash
-   vercel
-   ```
-
-3. **配置环境变量**
-   ```bash
-   vercel env add DEEPSEEK_API_KEY
-   ```
-
-## 方法 4: 本地 Docker 部署
-
-如果你想在自己的服务器上部署：
-
-### 创建 Dockerfile：
-
-```dockerfile
-FROM python:3.9-slim
-
-WORKDIR /app
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
-EXPOSE 8000
-
-CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+```
+前端 (GitHub Pages) ←→ 后端 (Vercel)
 ```
 
-### 构建和运行：
+- **前端**: 静态文件托管在 GitHub Pages
+- **后端**: FastAPI 应用部署到 Vercel
+- **数据**: 内存存储（重启后重置）
+
+## 🔧 部署步骤
+
+### 1. 后端部署到 Vercel
+
+#### 方法一：通过 Vercel CLI (推荐)
+```bash
+# 安装 Vercel CLI
+npm install -g vercel
+
+# 在项目根目录运行
+vercel
+
+# 按照提示操作：
+# - Set up "~/path/to/life_management"? [Y/n] y
+# - Which scope should contain your project? (选择账户)
+# - What's your project's name? life-management-api-v4
+# - In which directory is your code located? ./
+# - Want to override the settings? [y/N] n
+
+# 部署完成后，记录返回的 URL（例如：https://life-management-api-v4.vercel.app）
+```
+
+#### 方法二：通过 Vercel Dashboard
+1. 访问 [vercel.com](https://vercel.com) 并登录
+2. 点击 "New Project"
+3. 导入 GitHub 仓库 `chenzhan4321/life-management-system`
+4. 配置设置：
+   - **Framework Preset**: Other
+   - **Root Directory**: `./`
+   - **Build Command**: 留空
+   - **Output Directory**: 留空
+   - **Install Command**: `pip install -r requirements.txt`
+5. 点击 "Deploy"
+
+### 2. 更新前端 API 配置
+
+部署后端完成后，需要更新前端的 API 配置：
 
 ```bash
-# 构建镜像
-docker build -t life-management .
-
-# 运行容器
-docker run -d -p 8000:8000 \
-  -e DEEPSEEK_API_KEY=你的密钥 \
-  -v $(pwd)/data:/app/data \
-  life-management
+# 编辑 js/modules/api.js 文件
+# 将第13行的 URL 替换为你的 Vercel 部署地址
+# return 'https://your-vercel-app.vercel.app';
+# 改为：
+# return 'https://life-management-api-v4.vercel.app';  # 替换为你的实际URL
 ```
 
-## 快速开始（GitHub Pages + Netlify Functions）
+### 3. 前端自动部署
 
-如果你只想要一个静态前端 + 无服务器后端：
+前端会通过 GitHub Actions 自动部署到 GitHub Pages：
 
-1. **前端部署到 GitHub Pages**
-   - 在仓库设置中启用 GitHub Pages
-   - 选择 `main` 分支，`/docs` 文件夹
+1. 推送代码到 `main` 分支会触发自动部署
+2. 访问 GitHub 仓库的 Actions 标签查看部署状态
+3. 部署完成后，前端可通过以下地址访问：
+   `https://chenzhan4321.github.io/life-management-system/`
 
-2. **后端部署到 Netlify Functions**
-   - 需要将 FastAPI 改写为 Netlify Functions
-   - 在 Netlify 中连接 GitHub 仓库
+### 4. 配置 GitHub Pages
 
-## 部署后配置
+确保 GitHub Pages 已启用：
 
-### 1. 自定义域名
-大多数平台都支持自定义域名：
-- Railway: 项目设置 → Domains
-- Render: Settings → Custom Domains
-- Vercel: Project Settings → Domains
+1. 访问仓库设置: `Settings > Pages`
+2. 选择 Source: `GitHub Actions`
+3. 等待部署完成
 
-### 2. 数据库备份
-建议定期备份数据：
+## 🔗 访问地址
+
+部署完成后的访问地址：
+
+- **前端**: https://chenzhan4321.github.io/life-management-system/
+- **后端**: https://life-management-api-v4.vercel.app (替换为你的实际URL)
+- **健康检查**: https://life-management-api-v4.vercel.app/health
+
+## ⚙️ 环境变量配置
+
+### Vercel 环境变量 (可选)
+
+如果需要配置环境变量，在 Vercel Dashboard 中：
+
+1. 进入项目 Settings
+2. 选择 Environment Variables
+3. 添加以下变量：
+   ```
+   ENVIRONMENT=production
+   PYTHON_VERSION=3.9
+   ```
+
+## 🐛 故障排除
+
+### 常见问题
+
+1. **后端 502 错误**
+   - 检查 `api/index.py` 文件语法
+   - 查看 Vercel 函数日志
+   - 确认 `requirements.txt` 依赖正确
+
+2. **前端无法连接后端**
+   - 检查 API 配置 URL 是否正确
+   - 确认 CORS 设置允许前端域名
+   - 查看浏览器控制台错误
+
+3. **PWA 功能异常**
+   - 确保使用 HTTPS 访问
+   - 检查 Service Worker 是否注册成功
+   - 清除浏览器缓存重试
+
+### 调试工具
+
+- **后端日志**: Vercel Dashboard > Functions > View Function Logs
+- **前端调试**: 浏览器开发者工具 > Console
+- **网络请求**: 开发者工具 > Network 标签
+
+## 📱 PWA 安装
+
+部署完成后，用户可以：
+
+1. 在浏览器中访问应用
+2. 查看地址栏的安装提示
+3. 点击安装按钮添加到主屏幕
+4. 享受类原生应用体验
+
+## 🔄 更新部署
+
+### 更新后端
 ```bash
-# SQLite 备份
-sqlite3 life_management.db ".backup backup.db"
-
-# PostgreSQL 备份
-pg_dump DATABASE_URL > backup.sql
+# 修改代码后
+vercel --prod
 ```
 
-### 3. 监控和日志
-- Railway: 内置日志查看器
-- Render: Dashboard → Logs
-- Vercel: Functions → Logs
-
-## 环境变量说明
-
-| 变量名 | 说明 | 必需 |
-|--------|------|------|
-| `DEEPSEEK_API_KEY` | DeepSeek API 密钥 | 否（可用模拟模式）|
-| `DATABASE_URL` | 数据库连接字符串 | 否（默认SQLite）|
-| `PORT` | 服务端口 | 自动设置 |
-
-## 常见问题
-
-### Q: 如何获取 DeepSeek API Key？
-A: 访问 [DeepSeek Platform](https://platform.deepseek.com/) 注册并获取 API Key。
-
-### Q: 免费版够用吗？
-A: 
-- 个人使用完全够用
-- Railway 的 $5 额度可以运行整月
-- Render 免费版会休眠，但个人使用影响不大
-
-### Q: 数据会丢失吗？
-A: 
-- Railway/Render 的付费版数据持久化
-- 免费版建议定期备份
-- 可以使用外部数据库服务（如 Supabase）
-
-### Q: 如何更新部署的版本？
-A: 
+### 更新前端
 ```bash
-git add .
-git commit -m "Update"
-git push
-
-# 平台会自动重新部署
+# 推送到 main 分支即可自动部署
+git push origin main
 ```
 
-## 推荐部署方案
+## 📊 监控和维护
 
-### 个人使用
-- **Railway** + SQLite
-- 简单快速，最接近本地体验
+### 性能监控
+- Vercel Analytics: 自动启用
+- GitHub Pages: 通过 Actions 监控
 
-### 团队使用
-- **Render** + PostgreSQL
-- 免费，支持多用户
-
-### 高性能需求
-- **Vercel** + Supabase
-- 全球 CDN，响应快速
-
-## 需要帮助？
-
-- 提交 Issue: [GitHub Issues](https://github.com/你的用户名/life-management/issues)
-- 查看文档: [项目 Wiki](https://github.com/你的用户名/life-management/wiki)
+### 日志查看
+- Vercel: Dashboard > Functions > Logs
+- GitHub: Actions > 部署日志
 
 ---
 
-祝你部署顺利！🎉
+🎉 **部署完成！** 
+
+现在你有了一个完全现代化的生活管理系统，支持：
+- 🤖 AI 智能任务处理
+- 📱 PWA 离线功能
+- 🎨 双主题切换
+- 📊 时间域统计
+- ⚡ 快速响应
