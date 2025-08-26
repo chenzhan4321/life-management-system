@@ -4,7 +4,7 @@
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
-from src.core.models import Base
+from core.models import Base
 
 # 数据库配置
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./data/life_management.db")

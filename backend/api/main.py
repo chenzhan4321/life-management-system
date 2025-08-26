@@ -14,11 +14,11 @@ from contextlib import asynccontextmanager
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from src.core.models import Base, Task, TaskCreate, TaskResponse, TimeSlot, ScheduleRequest
-from src.ai.deepseek_agent import DeepSeekAgent, TaskProcessor
-from src.pipeline.scheduler import TimeSlotFinder, ScheduleOptimizer
-from src.utils.database import get_db, init_db
-from src.api.auth import get_current_user, ALLOWED_ORIGINS, create_access_token
+from core.models import Base, Task, TaskCreate, TaskResponse, TimeSlot, ScheduleRequest
+from ai.deepseek_agent import DeepSeekAgent, TaskProcessor
+from pipeline.scheduler import TimeSlotFinder, ScheduleOptimizer
+from utils.database import get_db, init_db
+from api.auth import get_current_user, ALLOWED_ORIGINS, create_access_token
 
 # 应用生命周期管理
 @asynccontextmanager
