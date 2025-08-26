@@ -16,12 +16,13 @@
     "electron-dev": "concurrently \"python run.py\" \"wait-on http://localhost:8000 && electron .\"",
     "electron-pack": "electron-builder",
     "preelectron-pack": "python -m pip install -r requirements.txt",
-    "build": "electron-builder --publish=never",
+    "build": "echo 'Skipping build for Vercel deployment'",
+    "build-electron": "electron-builder --publish=never",
     "build-mac": "electron-builder --mac",
     "build-win": "electron-builder --win",
     "build-linux": "electron-builder --linux",
     "dist": "electron-builder --publish=always",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "echo 'Skipping postinstall for Vercel'"
   },
   "build": {
     "appId": "com.lifemanagement.app",
