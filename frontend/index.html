@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>生活管理系统 v3.7 - 前后端分离架构</title>
+    <title>生活管理系统 v4.4 - AI智能化版本</title>
     <!-- 版本标识 -->
-    <meta name="version" content="v3.6-refactored">
-    <meta name="description" content="最新版本：前后端完全分离，GitHub Pages + Vercel 部署支持">
+    <meta name="version" content="v4.4">
+    <meta name="description" content="v4.4：实现JSON文件持久化存储，数据不再丢失">
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="./favicon.ico">
@@ -31,9 +31,9 @@
     <meta name="mobile-web-app-status-bar-style" content="default">
     
     <!-- 主题样式 -->
-    <link id="theme-stylesheet" rel="stylesheet" href="./css/theme-light.css?v=3.7">
+    <link id="theme-stylesheet" rel="stylesheet" href="./css/theme-light.css?v=4.0">
     <!-- 移动端响应式样式 -->
-    <link rel="stylesheet" href="./css/mobile.css?v=3.7">
+    <link rel="stylesheet" href="./css/mobile.css?v=4.0">
 </head>
 <body>
     <!-- 主题切换器 -->
@@ -52,7 +52,7 @@
                 <span class="logo">🎯</span>
                 <div>
                     <h1>生活管理系统</h1>
-                    <span style="font-size: 10px; color: #666; font-weight: 500;">v3.6 - 前后端分离架构</span>
+                    <span style="font-size: 10px; color: #666; font-weight: 500;">v4.4 - 持久化存储</span>
                 </div>
             </div>
             <div class="nav-stats">
@@ -249,14 +249,14 @@
     </div>
 
     <!-- 加载API配置 -->
-    <script src="./js/config.js?v=3.7"></script>
-    <script src="./js/app.js?v=3.7"></script>
+    <script src="./js/config.js?v=4.0"></script>
+    <script src="./js/app.js?v=4.0"></script>
     
     <!-- 主题切换功能 -->
     <script>
         function changeTheme(theme) {
             const themeStylesheet = document.getElementById('theme-stylesheet');
-            themeStylesheet.href = `./css/theme-${theme}.css?v=3.7`;
+            themeStylesheet.href = `./css/theme-${theme}.css?v=4.0`;
             localStorage.setItem('selectedTheme', theme);
         }
         
@@ -270,8 +270,8 @@
     
     <!-- PWA支持脚本 -->
     <script>
-        // Service Worker 注册
-        if ('serviceWorker' in navigator) {
+        // Service Worker 注册 (仅在 HTTP/HTTPS 协议下)
+        if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./js/sw.js')
                     .then(registration => {

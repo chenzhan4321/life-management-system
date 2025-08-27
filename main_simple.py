@@ -1,20 +1,28 @@
 """
-简化版FastAPI应用 - 用于Railway部署测试
+生活管理系统 API v4.2 - 集成AI智能处理与持久化存储
 """
 from fastapi import FastAPI, HTTPException, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from datetime import datetime
 import os
 import uuid
+import httpx
+import json
+import asyncio
+from pathlib import Path
+
+# DeepSeek API 配置
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "sk-caaa6d9b2c2b43e6a5cccca712c73fc9")
+DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
 
 # 创建 FastAPI 应用
 app = FastAPI(
-    title="生活管理系统 API - 简化版",
-    description="Railway部署测试版本",
-    version="1.0.0"
+    title="生活管理系统 API v4.2",
+    description="集成AI智能处理与持久化存储的任务管理系统",
+    version="4.2.0"
 )
 
 # CORS 配置
@@ -45,8 +53,51 @@ async def health_check():
         "domain": os.getenv("RAILWAY_PUBLIC_DOMAIN", "localhost")
     })
 
-# 内存中存储任务（临时方案）
+# 数据存储路径
+DATA_DIR = Path("data")
+DATA_FILE = DATA_DIR / "tasks.json"
+
+# 确保数据目录存在
+DATA_DIR.mkdir(exist_ok=True)
+
+# 任务数据库（内存缓存）
 tasks_db = {}
+
+# 数据持久化锁
+save_lock = asyncio.Lock()
+
+def load_tasks_from_file():
+    """从JSON文件加载任务数据"""
+    global tasks_db
+    if DATA_FILE.exists():
+        try:
+            with open(DATA_FILE, 'r', encoding='utf-8') as f:
+                tasks_db = json.load(f)
+                print(f"✅ 已从文件加载 {len(tasks_db)} 个任务")
+        except Exception as e:
+            print(f"⚠️ 加载任务数据失败: {e}")
+            tasks_db = {}
+    else:
+        print("📝 创建新的任务数据文件")
+        tasks_db = {}
+        save_tasks_to_file()
+
+def save_tasks_to_file():
+    """保存任务数据到JSON文件"""
+    try:
+        with open(DATA_FILE, 'w', encoding='utf-8') as f:
+            json.dump(tasks_db, f, ensure_ascii=False, indent=2)
+        print(f"💾 已保存 {len(tasks_db)} 个任务到文件")
+    except Exception as e:
+        print(f"❌ 保存任务数据失败: {e}")
+
+async def save_tasks_async():
+    """异步保存任务数据"""
+    async with save_lock:
+        await asyncio.get_event_loop().run_in_executor(None, save_tasks_to_file)
+
+# 启动时加载数据
+load_tasks_from_file()
 
 # 数据模型
 class Task(BaseModel):
@@ -74,6 +125,7 @@ async def create_task(task: Task):
     task_data["id"] = task_id
     task_data["created_at"] = datetime.now().isoformat()
     tasks_db[task_id] = task_data
+    await save_tasks_async()  # 保存到文件
     return JSONResponse({"status": "success", "task": task_data})
 
 @app.put("/api/tasks/{task_id}")
@@ -82,6 +134,7 @@ async def update_task(task_id: str, task_data: Dict[str, Any] = Body(...)):
     if task_id not in tasks_db:
         raise HTTPException(status_code=404, detail="任务不存在")
     tasks_db[task_id].update(task_data)
+    await save_tasks_async()  # 保存到文件
     return JSONResponse({"status": "success", "task": tasks_db[task_id]})
 
 @app.patch("/api/tasks/{task_id}")
@@ -90,6 +143,7 @@ async def patch_task(task_id: str, task_data: Dict[str, Any] = Body(...)):
     if task_id not in tasks_db:
         raise HTTPException(status_code=404, detail="任务不存在")
     tasks_db[task_id].update(task_data)
+    await save_tasks_async()  # 保存到文件
     return JSONResponse({"status": "success", "task": tasks_db[task_id]})
 
 @app.delete("/api/tasks/{task_id}")
@@ -98,7 +152,8 @@ async def delete_task(task_id: str):
     if task_id not in tasks_db:
         raise HTTPException(status_code=404, detail="任务不存在")
     del tasks_db[task_id]
-    return JSONResponse({"status": "success", "message": "任务已删除"})
+    await save_tasks_async()  # 保存到文件
+    return JSONResponse({"success": True, "message": "任务已删除"})
 
 @app.get("/api/analytics/daily")
 async def get_daily_analytics():
@@ -117,6 +172,204 @@ async def get_daily_analytics():
             "date": datetime.now().strftime("%Y-%m-%d")
         }
     })
+
+# AI处理相关数据模型
+class AIProcessRequest(BaseModel):
+    text: str
+    mode: str = "smart"  # smart, optimize, learn
+
+@app.post("/api/ai/process")
+async def process_with_ai(request: AIProcessRequest):
+    """使用DeepSeek AI处理文本，分析并结构化任务"""
+    try:
+        # 将输入文本按行分割，每行作为独立任务
+        lines = [line.strip() for line in request.text.strip().split('\n') if line.strip()]
+        
+        # 如果没有有效内容
+        if not lines:
+            return JSONResponse({
+                "status": "success",
+                "created_tasks": [],
+                "summary": "没有找到有效任务",
+                "total": 0
+            })
+        
+        # 获取历史任务作为参考（最近20个）
+        recent_tasks = []
+        for task_id, task in list(tasks_db.items())[-20:]:
+            recent_tasks.append({
+                "title": task.get("title", "")[:30],  # 截取前30字符
+                "domain": task.get("domain", "life"),
+                "priority": task.get("priority", 3),
+                "estimated_minutes": task.get("estimated_minutes", 30)
+            })
+        
+        # 构建历史参考文本
+        history_text = ""
+        if recent_tasks:
+            history_text = "\n历史任务参考（用于学习分类模式）：\n"
+            for t in recent_tasks[-5:]:  # 只取最近5个作为示例
+                history_text += f"- {t['title']} -> 领域:{t['domain']}, 优先级:{t['priority']}, 时间:{t['estimated_minutes']}分钟\n"
+        
+        # 构建提示词 - 强化分类准确性
+        system_prompt = f"""你是一个专业的任务分析助手。请严格按照以下规则分析每个任务：
+
+**核心要求**：
+1. 每一行都是独立任务，必须分别分析
+2. 仔细识别任务内容，根据关键词准确分类
+3. 如果任务中包含时间标记(如10m、30m、60m)，使用该时间作为estimated_minutes
+
+**领域分类（必须准确判断）**：
+
+1. academic（学术相关）- 以下情况归为此类：
+   - 算法相关：strassen、mamba、神经网络、机器学习等
+   - 编程开发：代码、程序、系统、软件等
+   - 学术研究：论文、研究、实验、文献等
+   - 课程学习：课程、作业、学习某个技术概念等
+   示例：strassen算法、ocr typo detection、学习Kyle的文件
+
+2. income（财务相关）- 以下情况归为此类：
+   - 报销事务：票据、报销、出差费用等
+   - 工资薪酬：发工资、劳务费、薪资等
+   - 银行事务：银行卡、信用卡、转账等
+   - 财务管理：预算、费用、收支等
+   示例：整理出差票据、发劳务费、银行卡事务
+
+3. growth（个人成长）- 以下情况归为此类：
+   - 新技术探索：试一试、了解、探索新工具
+   - 技能提升：学习新方法、提升能力
+   - 个人发展：自我提升类任务
+   示例：试一试mamba、学习新框架
+
+4. life（日常生活）- 以下情况归为此类：
+   - 邮件回复：回信、邮件、联系某人
+   - 日常事务：买药、生活琐事
+   - 人际交往：给某人东西、社交活动
+   示例：回信、失眠药给领导、爱欲课
+
+**优先级规则**：
+- 1级：包含"紧急"、"马上"、"立即"、"今天必须"
+- 2级：包含"重要"、工作核心任务、教授/领导相关
+- 3级：一般任务（默认）
+- 4级：包含"试试"、"看看"、"了解"等探索性词
+- 5级：可延后的休闲任务
+
+**时间估算规则**：
+- 优先识别任务中的时间标记（10m=10分钟，30m=30分钟，60m=60分钟）
+- 无标记时根据任务类型估算：
+  - 简单回信：20-30分钟
+  - 算法编程：60-120分钟
+  - 整理文档：45-60分钟
+  - 学习研究：60-90分钟
+
+{history_text}
+
+**输出格式**（必须返回JSON格式）：
+返回一个符合以下结构的JSON对象：
+{{
+  "tasks": [
+    {{"title": "保持原文不变", "domain": "必须是academic/income/growth/life之一", "priority": 1-5的数字, "estimated_minutes": 实际分钟数}}
+  ],
+  "summary": "分析完成，共X个任务"
+}}
+
+请认真分析每个任务的内容并返回JSON格式，不要全部归为默认值！"""
+        
+        # 将所有行用换行符连接，明确告诉AI每行是独立任务
+        task_list_text = "\n".join([f"{i+1}. {line}" for i, line in enumerate(lines)])
+        user_prompt = f"请分析以下{len(lines)}个独立任务，每个编号对应一个任务：\n{task_list_text}"
+        
+        # 调用DeepSeek API
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                DEEPSEEK_API_URL,
+                headers={
+                    "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": "deepseek-chat",
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    "temperature": 0.3,  # 降低温度提高准确性
+                    "max_tokens": 2000,  # 增加token避免截断
+                    "response_format": {"type": "json_object"}  # 强制JSON格式
+                },
+                timeout=60.0  # 增加到60秒避免超时
+            )
+            
+            if response.status_code != 200:
+                raise HTTPException(status_code=response.status_code, detail="AI服务暂时不可用")
+            
+            result = response.json()
+            ai_response = result.get("choices", [{}])[0].get("message", {}).get("content", "{}")
+            
+            # 解析AI返回的JSON
+            try:
+                parsed_tasks = json.loads(ai_response)
+                
+                # 验证返回的任务数量是否正确
+                if len(parsed_tasks.get("tasks", [])) != len(lines):
+                    print(f"警告：AI返回了{len(parsed_tasks.get('tasks', []))}个任务，但输入有{len(lines)}行")
+                    # 如果数量不匹配，为缺失的行创建默认任务
+                    ai_tasks = parsed_tasks.get("tasks", [])
+                    for i in range(len(lines)):
+                        if i >= len(ai_tasks):
+                            ai_tasks.append({
+                                "title": lines[i],
+                                "domain": "life",
+                                "priority": 3,
+                                "estimated_minutes": 30
+                            })
+                    parsed_tasks["tasks"] = ai_tasks[:len(lines)]  # 确保不超过输入行数
+                    
+            except json.JSONDecodeError:
+                # 如果AI返回的不是有效JSON，为每行创建默认任务
+                print("警告：AI返回的不是有效JSON，使用默认值")
+                parsed_tasks = {
+                    "tasks": [
+                        {
+                            "title": line,
+                            "domain": "life",
+                            "priority": 3,
+                            "estimated_minutes": 30
+                        } for line in lines
+                    ],
+                    "summary": f"已创建{len(lines)}个任务"
+                }
+            
+            # 将AI生成的任务添加到数据库
+            created_tasks = []
+            for task_data in parsed_tasks.get("tasks", []):
+                task_id = f"task_{uuid.uuid4().hex[:8]}"
+                task = {
+                    "id": task_id,
+                    "title": task_data.get("title", "未命名任务"),
+                    "domain": task_data.get("domain", "life"),
+                    "priority": task_data.get("priority", 3),
+                    "estimated_minutes": task_data.get("estimated_minutes", 30),
+                    "status": "pool",  # AI处理的任务放入任务池
+                    "created_at": datetime.now().isoformat()
+                }
+                tasks_db[task_id] = task
+                created_tasks.append(task)
+            
+            # 保存到文件
+            await save_tasks_async()
+            
+            return JSONResponse({
+                "status": "success",
+                "created_tasks": created_tasks,
+                "summary": parsed_tasks.get("summary", "任务已创建"),
+                "total": len(created_tasks)
+            })
+            
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=504, detail="AI处理超时，请稍后重试")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"处理失败: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn

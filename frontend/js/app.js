@@ -1,9 +1,15 @@
-// 生活管理系统前端应用 v3.7
+// 生活管理系统前端应用 v4.4
 // 更新日期: 2025-08-27
-// 特性: 完整API支持 + 主题系统重构 + 项目清理优化
+// 特性: AI智能处理 + DeepSeek集成 + 部署优化
 // 动态检测API基础URL
 const API_BASE = (() => {
     const hostname = window.location.hostname;
+    const protocol = window.location.protocol;
+    
+    // 本地文件打开（file://协议）
+    if (protocol === 'file:' || hostname === '' || hostname === null) {
+        return 'http://localhost:8000';
+    }
     
     // Railway部署检测
     if (hostname.includes('railway.app') || hostname.includes('up.railway.app')) {
@@ -739,8 +745,8 @@ async function addQuickTask() {
             domain: domain,
             estimated_minutes: estimatedMinutes,
             priority: 3, // 默认中等优先级
-            status: 'pool', // 直接添加的任务都放到任务池
-            scheduled_start: null, // 任务池中的任务暂时不安排时间
+            status: 'pending', // 新添加的任务默认为待完成状态
+            scheduled_start: null,
             scheduled_end: null
         };
         
@@ -804,20 +810,20 @@ async function aiProcessTasks() {
     resultDiv.classList.add('hidden');
     
     try {
-        const response = await fetch(`${API_BASE}/api/tasks/ai-process`, {
+        const response = await fetch(`${API_BASE}/api/ai/process`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ input: input })
+            body: JSON.stringify({ text: input, mode: 'smart' })
         });
         
         const data = await response.json();
         
-        if (data.success) {
+        if (response.ok && (data.success || data.status === 'success')) {
             // 显示处理结果
             showProcessResult(data);
-            showToast(data.message, 'success');
+            showToast(data.summary || data.message || 'AI处理成功', 'success');
             
             // 清空输入框
             textarea.value = '';
@@ -840,7 +846,9 @@ async function aiProcessTasks() {
 function showProcessResult(data) {
     const resultDiv = document.getElementById('processResult');
     
-    if (!data.tasks || data.tasks.length === 0) {
+    // 检查 created_tasks 或 tasks
+    const tasks = data.created_tasks || data.tasks || [];
+    if (tasks.length === 0) {
         resultDiv.classList.add('hidden');
         return;
     }
@@ -853,7 +861,7 @@ function showProcessResult(data) {
         life: []
     };
     
-    data.tasks.forEach(task => {
+    tasks.forEach(task => {
         if (tasksByDomain[task.domain]) {
             tasksByDomain[task.domain].push(task);
         }
@@ -862,7 +870,7 @@ function showProcessResult(data) {
     // 生成结果 HTML
     let html = `
         <div class="result-header">
-            ✅ 成功处理 ${data.count} 个任务
+            ✅ 成功处理 ${data.total || tasks.length} 个任务
         </div>
         <div class="result-tasks">
     `;
@@ -981,7 +989,7 @@ async function loadTasks() {
         // 分类任务
         const pendingTasks = data.tasks.filter(t => t.status === 'pending' || t.status === 'in_progress');
         const waitingTasks = data.tasks.filter(t => t.status === 'waiting');
-        const poolTasks = data.tasks.filter(t => t.status === 'pool' || (!t.scheduled_start && t.status !== 'completed' && t.status !== 'in_progress'));
+        const poolTasks = data.tasks.filter(t => t.status === 'pool');  // 只显示状态为pool的任务
         const completedTasks = data.tasks.filter(t => t.status === 'completed');
         
         // 按优先级排序（优先级高的在前），优先级相同则按时间排序
@@ -1496,15 +1504,18 @@ function updatePoolDeleteButton() {
 
 // 更新选择UI
 function updateSelectionUI() {
-    const deleteBtn = document.querySelector('.btn-delete-selected');
+    // 更新所有删除按钮（可能有多个）
+    const deleteBtns = document.querySelectorAll('.btn-delete-selected');
     const selectAllBtn = document.querySelector('.btn-select-all');
     
-    if (selectedTasks.size > 0) {
-        deleteBtn.style.display = 'inline-block';
-        deleteBtn.innerHTML = `<span class="btn-icon">🗑️</span> 删除选中 (${selectedTasks.size})`;
-    } else {
-        deleteBtn.style.display = 'none';
-    }
+    deleteBtns.forEach(deleteBtn => {
+        if (selectedTasks.size > 0) {
+            deleteBtn.style.display = 'inline-block';
+            deleteBtn.innerHTML = `<span class="btn-icon">🗑️</span> 删除选中 (${selectedTasks.size})`;
+        } else {
+            deleteBtn.style.display = 'none';
+        }
+    });
     
     // 更新任务项的选中样式
     document.querySelectorAll('.task-item').forEach(item => {
@@ -1611,11 +1622,14 @@ async function deleteSelectedPoolTasks() {
         showToast(`已删除 ${selectedTasks.size} 个任务`, 'success');
         selectedTasks.clear();
         
-        // 隐藏删除按钮
+        // 隐藏所有删除按钮
         const deleteBtn = document.getElementById('deletePoolBtn');
         if (deleteBtn) {
             deleteBtn.style.display = 'none';
         }
+        
+        // 更新所有选择相关的UI
+        updateSelectionUI();
         
         await loadTasks();
         await updateDashboard();
@@ -2663,9 +2677,9 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSavedTheme();
     
     // 版本信息和运行模式
-    console.log('🚀 生活管理系统 v3.7 已启动');
+    console.log('🚀 生活管理系统 v4.4 已启动');
     console.log('📅 版本日期: 2025-08-27');
-    console.log('✨ 新功能: 完整API支持 + 主题系统重构 + 性能优化');
+    console.log('✨ 新功能: AI智能处理 + DeepSeek集成 + 部署优化');
     console.log('🌐 当前运行环境:', {
         hostname: window.location.hostname,
         API_BASE,
@@ -2675,7 +2689,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 显示版本信息提示
     if (window.location.hostname.includes('github.io')) {
         setTimeout(() => {
-            showToast('🚀 生活管理系统 v3.7 - 优化重构版', 'success');
+            showToast('🚀 生活管理系统 v4.4 - AI智能化版本', 'success');
         }, 2000);
     } else if (window.location.hostname.includes('railway.app')) {
         setTimeout(() => {
