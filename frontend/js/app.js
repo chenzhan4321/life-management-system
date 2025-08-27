@@ -1,4 +1,4 @@
-// 生活管理系统前端应用 v4.4
+// 生活管理系统前端应用 v4.6
 // 更新日期: 2025-08-27
 // 特性: AI智能处理 + DeepSeek集成 + 部署优化
 // 动态检测API基础URL
@@ -2677,7 +2677,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSavedTheme();
     
     // 版本信息和运行模式
-    console.log('🚀 生活管理系统 v4.4 已启动');
+    console.log('🚀 生活管理系统 v4.6 已启动');
     console.log('📅 版本日期: 2025-08-27');
     console.log('✨ 新功能: AI智能处理 + DeepSeek集成 + 部署优化');
     console.log('🌐 当前运行环境:', {
@@ -2689,7 +2689,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 显示版本信息提示
     if (window.location.hostname.includes('github.io')) {
         setTimeout(() => {
-            showToast('🚀 生活管理系统 v4.4 - AI智能化版本', 'success');
+            showToast('🚀 生活管理系统 v4.6 - AI智能化版本', 'success');
         }, 2000);
     } else if (window.location.hostname.includes('railway.app')) {
         setTimeout(() => {
