@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
-from datetime import datetime
+from datetime import datetime, date
 import os
 import uuid
 import httpx
@@ -56,19 +56,23 @@ async def health_check():
 # 数据存储路径
 DATA_DIR = Path("data")
 DATA_FILE = DATA_DIR / "tasks.json"
+HISTORY_FILE = DATA_DIR / "completed_tasks.json"
 
 # 确保数据目录存在
 DATA_DIR.mkdir(exist_ok=True)
 
 # 任务数据库（内存缓存）
 tasks_db = {}
+completed_history = {}  # 历史完成任务
 
 # 数据持久化锁
 save_lock = asyncio.Lock()
 
 def load_tasks_from_file():
     """从JSON文件加载任务数据"""
-    global tasks_db
+    global tasks_db, completed_history
+    
+    # 加载当前任务
     if DATA_FILE.exists():
         try:
             with open(DATA_FILE, 'r', encoding='utf-8') as f:
@@ -81,6 +85,18 @@ def load_tasks_from_file():
         print("📝 创建新的任务数据文件")
         tasks_db = {}
         save_tasks_to_file()
+    
+    # 加载历史任务
+    if HISTORY_FILE.exists():
+        try:
+            with open(HISTORY_FILE, 'r', encoding='utf-8') as f:
+                completed_history = json.load(f)
+                print(f"📚 已加载 {len(completed_history)} 个历史任务")
+        except Exception as e:
+            print(f"⚠️ 加载历史数据失败: {e}")
+            completed_history = {}
+    else:
+        completed_history = {}
 
 def save_tasks_to_file():
     """保存任务数据到JSON文件"""
@@ -91,10 +107,24 @@ def save_tasks_to_file():
     except Exception as e:
         print(f"❌ 保存任务数据失败: {e}")
 
+def save_history_to_file():
+    """保存历史任务到JSON文件"""
+    try:
+        with open(HISTORY_FILE, 'w', encoding='utf-8') as f:
+            json.dump(completed_history, f, ensure_ascii=False, indent=2)
+        print(f"📚 已保存 {len(completed_history)} 个历史任务")
+    except Exception as e:
+        print(f"❌ 保存历史数据失败: {e}")
+
 async def save_tasks_async():
     """异步保存任务数据"""
     async with save_lock:
         await asyncio.get_event_loop().run_in_executor(None, save_tasks_to_file)
+
+async def save_history_async():
+    """异步保存历史数据"""
+    async with save_lock:
+        await asyncio.get_event_loop().run_in_executor(None, save_history_to_file)
 
 # 启动时加载数据
 load_tasks_from_file()
@@ -109,8 +139,10 @@ class Task(BaseModel):
     
 @app.get("/api/tasks")
 async def get_tasks():
-    """获取任务列表"""
+    """获取任务列表（按优先级排序）"""
     tasks_list = list(tasks_db.values())
+    # 按优先级升序排序（优先级1最高，5最低）
+    tasks_list.sort(key=lambda x: (x.get("priority", 3), x.get("created_at", "")))
     return JSONResponse({
         "tasks": tasks_list,
         "total": len(tasks_list),
@@ -133,18 +165,58 @@ async def update_task(task_id: str, task_data: Dict[str, Any] = Body(...)):
     """更新任务 (PUT)"""
     if task_id not in tasks_db:
         raise HTTPException(status_code=404, detail="任务不存在")
+    
+    # 更新任务
     tasks_db[task_id].update(task_data)
+    
+    # 如果任务标记为完成，移动到历史文件
+    if task_data.get("status") == "completed":
+        # 添加完成时间
+        tasks_db[task_id]["completed_at"] = datetime.now().isoformat()
+        # 检查是否是今天完成的
+        completed_date = datetime.now().strftime("%Y-%m-%d")
+        # 移动到历史记录
+        completed_history[task_id] = tasks_db[task_id]
+        completed_history[task_id]["completed_date"] = completed_date
+        # 从当前任务中删除
+        del tasks_db[task_id]
+        # 保存历史文件
+        await save_history_async()
+    
     await save_tasks_async()  # 保存到文件
-    return JSONResponse({"status": "success", "task": tasks_db[task_id]})
+    
+    # 返回任务（如果已完成，从历史中返回）
+    task = completed_history.get(task_id) if task_id in completed_history else tasks_db.get(task_id)
+    return JSONResponse({"status": "success", "task": task})
 
 @app.patch("/api/tasks/{task_id}")
 async def patch_task(task_id: str, task_data: Dict[str, Any] = Body(...)):
     """部分更新任务 (PATCH)"""
     if task_id not in tasks_db:
         raise HTTPException(status_code=404, detail="任务不存在")
+    
+    # 更新任务
     tasks_db[task_id].update(task_data)
+    
+    # 如果任务标记为完成，移动到历史文件
+    if task_data.get("status") == "completed":
+        # 添加完成时间
+        tasks_db[task_id]["completed_at"] = datetime.now().isoformat()
+        # 检查是否是今天完成的
+        completed_date = datetime.now().strftime("%Y-%m-%d")
+        # 移动到历史记录
+        completed_history[task_id] = tasks_db[task_id]
+        completed_history[task_id]["completed_date"] = completed_date
+        # 从当前任务中删除
+        del tasks_db[task_id]
+        # 保存历史文件
+        await save_history_async()
+    
     await save_tasks_async()  # 保存到文件
-    return JSONResponse({"status": "success", "task": tasks_db[task_id]})
+    
+    # 返回任务（如果已完成，从历史中返回）
+    task = completed_history.get(task_id) if task_id in completed_history else tasks_db.get(task_id)
+    return JSONResponse({"status": "success", "task": task})
 
 @app.delete("/api/tasks/{task_id}")
 async def delete_task(task_id: str):
@@ -158,19 +230,39 @@ async def delete_task(task_id: str):
 @app.get("/api/analytics/daily")
 async def get_daily_analytics():
     """获取每日统计数据"""
-    completed = len([t for t in tasks_db.values() if t.get("status") == "completed"])
+    today = datetime.now().strftime("%Y-%m-%d")
+    # 计算今日完成的任务
+    today_completed = [t for t in completed_history.values() 
+                      if t.get("completed_date") == today]
+    
     pending = len([t for t in tasks_db.values() if t.get("status") == "pending"])
-    total = len(tasks_db)
-    productivity_score = int((completed / total * 100) if total > 0 else 0)
+    total = len(tasks_db) + len(today_completed)
+    productivity_score = int((len(today_completed) / total * 100) if total > 0 else 0)
     
     return JSONResponse({
         "summary": {
-            "completed_tasks": completed,
+            "completed_tasks": len(today_completed),
             "pending_tasks": pending,
             "total_tasks": total,
             "productivity_score": productivity_score,
-            "date": datetime.now().strftime("%Y-%m-%d")
+            "date": today
         }
+    })
+
+@app.get("/api/tasks/completed/today")
+async def get_today_completed_tasks():
+    """获取今日完成的任务"""
+    today = datetime.now().strftime("%Y-%m-%d")
+    today_tasks = [task for task in completed_history.values() 
+                   if task.get("completed_date") == today]
+    
+    # 按完成时间排序（最新的在前）
+    today_tasks.sort(key=lambda x: x.get("completed_at", ""), reverse=True)
+    
+    return JSONResponse({
+        "tasks": today_tasks,
+        "total": len(today_tasks),
+        "date": today
     })
 
 # AI处理相关数据模型
